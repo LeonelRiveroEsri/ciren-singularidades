@@ -253,10 +253,11 @@ var pointRelationship = relationshipFields(parentFields, pointFields);
 var lineRelationship = relationshipFields(parentFields, lineFields);
 
 if (pointRelationship == null || lineRelationship == null) {
-  return FeatureSet({
+  return FeatureSet(Text({
     fields: [
       { name: "error", alias: "Error de relación", type: "esriFieldTypeString" },
     ],
+    spatialReference: { wkid: 4326 },
     geometryType: "esriGeometryPolygon",
     features: [
       {
@@ -267,7 +268,7 @@ if (pointRelationship == null || lineRelationship == null) {
         geometry: null,
       },
     ],
-  });
+  }));
 }
 
 var outputFields = [];
@@ -331,6 +332,7 @@ Push(outputFields, {
 
 var output = {
   fields: outputFields,
+  spatialReference: { wkid: 4326 },
   geometryType: "esriGeometryPolygon",
   features: [],
 };
@@ -535,6 +537,6 @@ for (var parent in parents) {
   });
 }
 
-// Se entrega el Dictionary directamente para conservar geometrías y textos
-// extensos sin una serialización intermedia. Requiere Arcade 1.19 o superior.
-return FeatureSet(output);
+// La firma serializada es compatible desde Arcade 1.5. La definición incluye
+// el spatialReference obligatorio del FeatureSet y de cada geometría.
+return FeatureSet(Text(output));
