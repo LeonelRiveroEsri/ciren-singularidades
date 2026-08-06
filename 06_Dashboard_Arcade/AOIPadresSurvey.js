@@ -252,7 +252,7 @@ var lineFields = Schema(lines).fields;
 var pointRelationship = relationshipFields(parentFields, pointFields);
 var lineRelationship = relationshipFields(parentFields, lineFields);
 
-if (IsEmpty(pointRelationship) || IsEmpty(lineRelationship)) {
+if (pointRelationship == null || lineRelationship == null) {
   return FeatureSet(Text({
     fields: [
       { name: "error", alias: "Error de relación", type: "esriFieldTypeString" },
@@ -464,10 +464,10 @@ for (var parent in parents) {
       Text(attachmentCount) + ")</div>" +
       "<div style='padding:10px 4px 0 4px;'>";
 
-    var visibleAttachmentCount = Min(
-      attachmentCount,
-      maxAttachmentsPerReport,
-    );
+    var visibleAttachmentCount = attachmentCount;
+    if (visibleAttachmentCount > maxAttachmentsPerReport) {
+      visibleAttachmentCount = maxAttachmentsPerReport;
+    }
     for (var attachmentIndex = 0; attachmentIndex < visibleAttachmentCount; attachmentIndex++) {
       var attachment = attachments[attachmentIndex];
       var attachmentUrl =
@@ -536,4 +536,6 @@ for (var parent in parents) {
   });
 }
 
+// Dashboard Data exige un FeatureSet. No sustituir este retorno por
+// `return output`, `return output.features` ni valores escalares al depurar.
 return FeatureSet(Text(output));
