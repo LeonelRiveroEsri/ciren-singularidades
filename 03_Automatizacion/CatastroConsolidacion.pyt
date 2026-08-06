@@ -16,7 +16,7 @@ TOOLBOX_DIR = Path(__file__).resolve().parent
 if str(TOOLBOX_DIR) not in sys.path:
     sys.path.insert(0, str(TOOLBOX_DIR))
 
-from consolidar_survey import run_consolidation  # noqa: E402
+from consolidar_survey import resolve_relationship_fields, run_consolidation  # noqa: E402
 
 
 # CONFIGURACIÓN EMBEBIDA PARA PUBLICACIÓN.
@@ -89,6 +89,28 @@ def report_messages(report):
         arcpy.AddMessage(message)
 
 
+def report_relationship_fields(gis, source_item_id):
+    """Valida e informa el contrato relacional antes de consolidar."""
+    source_item = gis.content.get(source_item_id)
+    if source_item is None:
+        raise ValueError("No se encontró el ítem Survey de origen.")
+    tables = list(getattr(source_item, "tables", []) or [])
+    layers = list(getattr(source_item, "layers", []) or [])
+    if not tables:
+        raise ValueError("El Survey de origen no contiene una tabla padre.")
+    source_table = tables[0]
+    for layer in layers:
+        geometry_type = layer.properties.get("geometryType")
+        if geometry_type not in ("esriGeometryPoint", "esriGeometryPolyline"):
+            continue
+        parent_key, child_key = resolve_relationship_fields(source_table, layer)
+        arcpy.AddMessage(
+            "Relación validada para {}: padre.{} -> hijo.{}".format(
+                layer.properties.name, parent_key, child_key
+            )
+        )
+
+
 class Toolbox(object):
     def __init__(self):
         self.label = "Catastro de singularidades"
@@ -129,6 +151,7 @@ class ConsolidarEncuestasValidadas(object):
             arcpy.AddMessage("Configuración JSON cargada correctamente.")
             arcpy.AddMessage("Filtro: {}".format(consolidation["parent_where"]))
             gis = connect_gis(config)
+            report_relationship_fields(gis, items["survey_feature_service"])
             report = run_consolidation(
                 gis=gis,
                 source_item_id=items["survey_feature_service"],

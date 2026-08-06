@@ -168,11 +168,50 @@ def build_attributes(
     return attributes
 
 
-def build_parent_index(parent_features: Iterable[Feature]) -> Dict[str, Feature]:
+def field_names(layer: FeatureLayer) -> Dict[str, str]:
+    """Devuelve nombre normalizado -> nombre real para una capa o tabla."""
+    return {
+        str(field["name"]).lower(): str(field["name"])
+        for field in layer.properties.fields
+    }
+
+
+def resolve_relationship_fields(
+    source_table: FeatureLayer,
+    source_layer: FeatureLayer,
+) -> Tuple[str, str]:
+    """Detecta la clave relacional usada por la publicación de Survey123."""
+    parent_names = field_names(source_table)
+    child_names = field_names(source_layer)
+    supported_pairs = (
+        ("uniquerowid", "parentrowid"),
+        ("globalid", "parentglobalid"),
+    )
+
+    for parent_key, child_key in supported_pairs:
+        if parent_key in parent_names and child_key in child_names:
+            return parent_names[parent_key], child_names[child_key]
+
+    raise ValueError(
+        "No se encontró una relación compatible entre la tabla padre '{}' y "
+        "la capa hija '{}'. Se esperaba uniquerowid→parentrowid o "
+        "globalid→parentglobalid. Campos padre: {}; campos hijo: {}.".format(
+            source_table.properties.name,
+            source_layer.properties.name,
+            sorted(parent_names.values()),
+            sorted(child_names.values()),
+        )
+    )
+
+
+def build_parent_index(
+    parent_features: Iterable[Feature],
+    parent_key_field: str = "globalid",
+) -> Dict[str, Feature]:
     index = {}
     for feature in parent_features:
         attributes = casefold_attributes(feature.attributes)
-        key = normalize_guid(attributes.get("globalid"))
+        key = normalize_guid(attributes.get(parent_key_field.lower()))
         if key:
             index[key] = feature
     return index
@@ -279,6 +318,7 @@ def consolidate_geometry_type(
     update_existing: bool,
     sync_attachments: bool,
     field_overrides: Optional[Dict[str, str]] = None,
+    child_parent_field: str = "parentglobalid",
     logs=None,
 ) -> Dict[str, int]:
     """Consolida un tipo geométrico y devuelve métricas del proceso."""
@@ -304,13 +344,18 @@ def consolidate_geometry_type(
         summary["source"] += 1
         child_attributes = casefold_attributes(child.attributes)
         child_globalid = normalize_guid(child_attributes.get("globalid"))
-        parent_globalid = normalize_guid(child_attributes.get("parentglobalid"))
-        parent = parent_index.get(parent_globalid)
+        parent_row_key = normalize_guid(child_attributes.get(child_parent_field.lower()))
+        parent = parent_index.get(parent_row_key)
         if not child_globalid or parent is None:
             summary["orphaned"] += 1
-            _log(logs, "warning", f"Geometría sin padre o GlobalID: {child.attributes}")
+            _log(
+                logs,
+                "warning",
+                f"Geometría sin padre o GlobalID usando {child_parent_field}: "
+                f"{child.attributes}",
+            )
             continue
-        if parent_globalid not in selected_parent_ids:
+        if parent_row_key not in selected_parent_ids:
             summary["filtered"] += 1
             continue
 
@@ -393,9 +438,26 @@ def run_consolidation(
     selected_parents = query_features(
         source_table, where=parent_where, return_geometry=False
     )
-    parent_index = build_parent_index(all_parents)
-    selected_parent_ids = set(build_parent_index(selected_parents))
-    _log(logs, "info", f"Padres seleccionados: {len(selected_parent_ids)}")
+    relationship_fields = {}
+    for geometry_type in ("esriGeometryPoint", "esriGeometryPolyline"):
+        relationship_fields[geometry_type] = resolve_relationship_fields(
+            source_table,
+            schema["source_by_type"][geometry_type],
+        )
+
+    parent_indexes = {}
+    selected_parent_ids = {}
+    for geometry_type, (parent_key, child_key) in relationship_fields.items():
+        parent_indexes[geometry_type] = build_parent_index(all_parents, parent_key)
+        selected_parent_ids[geometry_type] = set(
+            build_parent_index(selected_parents, parent_key)
+        )
+        _log(
+            logs,
+            "info",
+            f"Relación {geometry_type}: {parent_key} -> {child_key}; "
+            f"padres seleccionados: {len(selected_parent_ids[geometry_type])}",
+        )
 
     # Mapeo explícito de cotas según la geometría y la lógica del XLSForm:
     # - Punto: cota = GPS automática; cota_manual = captura manual.
@@ -436,13 +498,14 @@ def run_consolidation(
             source_table=source_table,
             source_layer=schema["source_by_type"][geometry_type],
             target_layer=schema["target_by_type"][geometry_type],
-            parent_index=parent_index,
-            selected_parent_ids=selected_parent_ids,
+            parent_index=parent_indexes[geometry_type],
+            selected_parent_ids=selected_parent_ids[geometry_type],
             unique_field=unique_field,
             dry_run=dry_run,
             update_existing=update_existing,
             sync_attachments=sync_attachments,
             field_overrides=overrides_by_type[geometry_type],
+            child_parent_field=relationship_fields[geometry_type][1],
             logs=logs,
         )
     return report

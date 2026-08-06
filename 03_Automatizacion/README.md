@@ -33,6 +33,11 @@ La sección `automation` y el interruptor `arcade_tokens.notebook_execute_change
 
 ## Publicación PYT
 
+Antes de editar el destino, la herramienta valida automáticamente la relación
+de cada capa hija. Admite `uniquerowid` → `parentrowid` y `globalid` →
+`parentglobalid`. El par detectado aparece en los mensajes de geoprocesamiento;
+un esquema incompatible detiene la ejecución e informa los campos encontrados.
+
 Publicar desde una carpeta de preparación que contenga juntos:
 
 - `CatastroConsolidacion.pyt`
