@@ -7,11 +7,10 @@
 var portal = Portal("<URL_PORTAL>");
 var surveyItemId = "<ITEM_ID_SERVICIO_SURVEY>";
 
-// URL REST exacta de la tabla padre, sin barra final. El token se renueva con
-// 03_Automatizacion/ActualizarTokensScheduler.py.
+// Adjuntos del padre. El Scheduler reemplaza únicamente el valor de var token.
 var parentLayerUrl = "<URL_REST_TABLA_PADRE_FEATURESERVER_0>";
 var token = "<TOKEN_GESTIONADO_AUTOMATICAMENTE>";
-var maxAttachmentsPerReport = 8;
+var maxPhotosPerItem = 4;
 
 // IDs REST del servicio Survey: confirmar después de publicar.
 var parentTableId = 0;
@@ -88,131 +87,6 @@ function relationshipFields(parentFieldList, childFieldList) {
   return null;
 }
 
-function formatReportValue(value, valueType) {
-  if (IsEmpty(value)) {
-    return "";
-  }
-  if (valueType == "date") {
-    return Text(value, "DD-MM-YYYY");
-  }
-  if (valueType == "datetime") {
-    return Text(value, "DD-MM-YYYY HH:mm");
-  }
-  if (valueType == "integer") {
-    return Text(Number(value), "#,###");
-  }
-  if (valueType == "decimal") {
-    return Text(Number(value), "#,###.##");
-  }
-  if (valueType == "coordinate") {
-    return Text(Number(value), "0.000000");
-  }
-  return htmlEncode(value, "");
-}
-
-function reportSection(parentFeature, title, fields) {
-  var rows = "";
-  var visibleRows = 0;
-  for (var fieldIndex in fields) {
-    var reportField = fields[fieldIndex];
-    var value = formatReportValue(
-      parentFeature[reportField[1]],
-      reportField[2],
-    );
-    if (!IsEmpty(value)) {
-      var background = IIf(visibleRows % 2 == 0, "#f4f7f9", "#ffffff");
-      rows +=
-        "<tr style='background:" + background + ";'>" +
-        "<td style='width:44%;padding:7px 9px;border-bottom:1px solid #dfe7ec;" +
-        "font-weight:600;color:#29465b;vertical-align:top;'>" +
-        htmlEncode(reportField[0], "") +
-        "</td><td style='padding:7px 9px;border-bottom:1px solid #dfe7ec;" +
-        "color:#263746;vertical-align:top;'>" + value + "</td></tr>";
-      visibleRows += 1;
-    }
-  }
-  if (visibleRows == 0) {
-    return "";
-  }
-  return "<div style='margin-top:12px;padding:8px 10px;background:#287d8e;" +
-    "color:#ffffff;font-size:13px;font-weight:700;'>" +
-    htmlEncode(title, "") + "</div>" +
-    "<table style='width:100%;border-collapse:collapse;font-size:12px;'>" +
-    rows + "</table>";
-}
-
-var reportSections = [
-  ["Identificación", [
-    ["ID de inspección", "identificador", "text"],
-    ["N.º de obra", "n_obra", "integer"],
-    ["Nombre del canal", "nombre_canal", "text"],
-    ["Tipo de infraestructura", "canal_derivado", "text"],
-    ["Unidad", "unidad", "text"],
-  ]],
-  ["Fechas y responsables", [
-    ["Fecha de inspección", "fecha_manual", "date"],
-    ["Fecha de registro", "fecha_automatica", "datetime"],
-    ["Encuestador/a", "encuestador", "text"],
-    ["Usuario de registro", "usuario_login", "text"],
-    ["Revisor responsable", "revisor_responsable", "text"],
-    ["Nombre del revisor", "nombre_revisor", "text"],
-    ["Estado de validación", "validacion", "text"],
-  ]],
-  ["Iniciativa y antecedentes", [
-    ["Nombre de la iniciativa", "iniciativas", "text"],
-    ["Código BIP", "codigo_bip_", "text"],
-    ["Consultora", "consultora_", "text"],
-    ["Características de la obra", "caract_obra", "text"],
-    ["Singularidad", "singularidades", "text"],
-    ["Nota importante", "nota_1", "text"],
-  ]],
-  ["Ubicación", [
-    ["Región", "region", "text"],
-    ["Provincia", "provincia", "text"],
-    ["Comuna", "comuna", "text"],
-    ["Cuenca", "cuenca", "text"],
-    ["Subcuenca", "subcuenca", "text"],
-    ["Sector", "sector", "text"],
-    ["Kilómetro o tramo", "km_tramo", "decimal"],
-  ]],
-  ["Coordenadas y elevación", [
-    ["Longitud geográfica", "longitud", "coordinate"],
-    ["Latitud geográfica", "latitud", "coordinate"],
-    ["UTM Este", "este", "decimal"],
-    ["UTM Norte", "norte", "decimal"],
-    ["Cota inicial", "cota", "decimal"],
-    ["Cota final", "cota_manual", "decimal"],
-  ]],
-  ["Características y dimensiones", [
-    ["Canal automatizado", "automatizada", "text"],
-    ["Grado de mantención", "grado_mantencion", "text"],
-    ["Materialidad", "materialidad", "text"],
-    ["Caudal máximo (l/s)", "caudal", "decimal"],
-    ["Presencia de vegetación", "presencia_vegetacion", "text"],
-    ["Dificultad de acceso", "dificultad_acceso", "text"],
-    ["Longitud del tramo (m)", "longitud_tramo", "decimal"],
-    ["Largo (m)", "largo", "decimal"],
-    ["Ancho (m)", "ancho", "decimal"],
-    ["Alto (m)", "alto", "decimal"],
-    ["Diámetro (m)", "diametro", "decimal"],
-  ]],
-  ["Evaluación técnica y gestión", [
-    ["Funcionamiento hidráulico", "fun_hidraulico", "text"],
-    ["Estado estructural", "est_estructural", "text"],
-    ["Puntaje técnico", "puntaje_tec", "decimal"],
-    ["Estado técnico", "estado_factores_tec", "text"],
-    ["Factores de riesgo", "factor_riesgo", "text"],
-    ["Facilidad de operación", "facilidad_operacion", "text"],
-    ["Puntaje de gestión", "puntaje_gestion", "decimal"],
-    ["Estado de gestión", "estado_factores_gest", "text"],
-  ]],
-  ["Rehabilitación y observaciones", [
-    ["Requiere rehabilitación", "requiere_rehabilitacion", "text"],
-    ["Tipo de rehabilitación", "tipo_rehabilitacion", "text"],
-    ["Observaciones", "observaciones", "text"],
-  ]],
-];
-
 // =====================================================
 // 3. CONSULTAR PADRE E HIJOS DEL SURVEY
 // =====================================================
@@ -252,26 +126,32 @@ var lineFields = Schema(lines).fields;
 var pointRelationship = relationshipFields(parentFields, pointFields);
 var lineRelationship = relationshipFields(parentFields, lineFields);
 
-if (pointRelationship == null || lineRelationship == null) {
-  return FeatureSet(Text({
-    fields: [
-      { name: "error", alias: "Error de relación", type: "esriFieldTypeString" },
-    ],
-    geometryType: "esriGeometryPolygon",
-    features: [
-      {
-        attributes: {
-          error: "No se encontró una relación compatible. Se esperaba " +
-            "uniquerowid/parentrowid o globalid/parentglobalid.",
+if (IsEmpty(pointRelationship) || IsEmpty(lineRelationship)) {
+  return FeatureSet(
+    Text({
+      fields: [
+        {
+          name: "error",
+          alias: "Error de relación",
+          type: "esriFieldTypeString",
         },
-        geometry: null,
-      },
-    ],
-  }));
+      ],
+      geometryType: "esriGeometryPolygon",
+      features: [
+        {
+          attributes: {
+            error:
+              "No se encontró una relación compatible. Se esperaba " +
+              "uniquerowid/parentrowid o globalid/parentglobalid.",
+          },
+          geometry: null,
+        },
+      ],
+    }),
+  );
 }
 
 var outputFields = [];
-var parentObjectIdField = "";
 
 for (var f in parentFields) {
   var field = parentFields[f];
@@ -281,7 +161,6 @@ for (var f in parentFields) {
   // Un FeatureSet calculado no necesita el ObjectID original. GlobalID y GUID
   // se publican como texto para evitar restricciones de campos de sistema.
   if (fieldType == "esriFieldTypeOID") {
-    parentObjectIdField = fieldName;
     continue;
   }
   if (
@@ -319,11 +198,6 @@ Push(outputFields, {
   type: "esriFieldTypeDouble",
 });
 Push(outputFields, {
-  name: "cantidad_adjuntos",
-  alias: "Adjuntos",
-  type: "esriFieldTypeInteger",
-});
-Push(outputFields, {
   name: "html",
   alias: "Tarjeta HTML",
   type: "esriFieldTypeString",
@@ -354,10 +228,7 @@ for (var parent in parents) {
   }
   var parentLines = Filter(lines, "1=0");
   if (!IsEmpty(lineParentId)) {
-    parentLines = Filter(
-      lines,
-      lineRelationship.child + " = @lineParentId",
-    );
+    parentLines = Filter(lines, lineRelationship.child + " = @lineParentId");
   }
   var aoiParts = [];
 
@@ -440,75 +311,40 @@ for (var parent in parents) {
     "</div>" +
     "</div>";
 
-  // Reporte detallado del padre. Solo se agregan filas con información.
-  html +=
-    "<div style='margin-top:10px;font-family:Avenir Next,Segoe UI,Arial,sans-serif;" +
-    "background:#ffffff;border:1px solid #d8e1e8;border-radius:10px;" +
-    "padding:12px 14px;color:#263746;'>" +
-    "<div style='font-size:16px;font-weight:700;color:#145c70;'>" +
-    "Ficha detallada de la inspección</div>";
-
-  for (var sectionIndex in reportSections) {
-    var section = reportSections[sectionIndex];
-    html += reportSection(parent, section[0], section[1]);
+  // Galería simple, basada en el patrón probado de Lista3.js.
+  var parentAttachments = Attachments(parent);
+  var photoUrls = [];
+  var photoNames = [];
+  for (var attachmentIndex in parentAttachments) {
+    var attachment = parentAttachments[attachmentIndex];
+    var contentType = Lower(DefaultValue(attachment["contentType"], ""));
+    if (Find("image/", contentType) == 0 && Count(photoUrls) < maxPhotosPerItem) {
+      var photoUrl =
+        parentLayerUrl + "/" + Text(parent["objectid"]) + "/attachments/" +
+        Text(attachment["id"]) + "?token=" + token;
+      Push(photoUrls, photoUrl);
+      Push(photoNames, htmlEncode(attachment["name"], "Fotografía"));
+    }
   }
 
-  var attachments = Attachments(parent);
-  var attachmentCount = Count(attachments);
-  if (attachmentCount > 0 && !IsEmpty(parentObjectIdField)) {
-    var parentObjectId = parent[parentObjectIdField];
+  if (Count(photoUrls) > 0) {
     html +=
-      "<div style='margin-top:12px;padding:8px 10px;background:#287d8e;" +
-      "color:#ffffff;font-size:13px;font-weight:700;'>Evidencias y adjuntos (" +
-      Text(attachmentCount) + ")</div>" +
-      "<div style='padding:10px 4px 0 4px;'>";
-
-    var visibleAttachmentCount = attachmentCount;
-    if (visibleAttachmentCount > maxAttachmentsPerReport) {
-      visibleAttachmentCount = maxAttachmentsPerReport;
-    }
-    for (var attachmentIndex = 0; attachmentIndex < visibleAttachmentCount; attachmentIndex++) {
-      var attachment = attachments[attachmentIndex];
-      var attachmentUrl =
-        parentLayerUrl + "/" + Text(parentObjectId) + "/attachments/" +
-        Text(attachment.id) + "?token=" + token;
-      var contentType = Lower(DefaultValue(attachment.contentType, ""));
-      var fileName = htmlEncode(attachment.name, "Archivo adjunto");
-
-      if (Find("image/", contentType) == 0) {
-        html +=
-          "<div style='display:inline-block;box-sizing:border-box;width:49%;" +
-          "padding:5px;vertical-align:top;'>" +
-          "<a href='" + attachmentUrl + "' target='_blank' style='text-decoration:none;'>" +
-          "<img src='" + attachmentUrl + "' alt='" + fileName + "' " +
-          "style='display:block;width:100%;height:150px;object-fit:cover;" +
-          "border:1px solid #c8d4da;border-radius:7px;'>" +
-          "</a><div style='padding:4px 2px;font-size:10px;color:#526b78;" +
-          "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" +
-          fileName + "</div></div>";
-      } else {
-        html +=
-          "<div style='margin:5px;padding:8px;background:#f4f7f9;border-radius:5px;'>" +
-          "<a href='" + attachmentUrl + "' target='_blank' " +
-          "style='color:#145c70;font-size:12px;font-weight:700;text-decoration:none;'>" +
-          "&#128206; " + fileName + "</a></div>";
-      }
-    }
-
-    if (attachmentCount > visibleAttachmentCount) {
+      "<div style='margin-top:8px;padding:10px;background:#ffffff;" +
+      "border:1px solid #d8e1e8;border-radius:8px;'>" +
+      "<div style='margin-bottom:8px;font-size:13px;font-weight:700;color:#145c70;'>" +
+      "Evidencias fotográficas</div>";
+    for (var photoIndex in photoUrls) {
       html +=
-        "<div style='padding:7px;font-size:11px;color:#526b78;text-align:center;'>" +
-        "Se muestran " + Text(visibleAttachmentCount) + " de " +
-        Text(attachmentCount) + " adjuntos.</div>";
+        "<div style='margin-bottom:10px;text-align:center;'>" +
+        "<a href='" + photoUrls[photoIndex] + "' target='_blank'>" +
+        "<img src='" + photoUrls[photoIndex] + "' alt='" + photoNames[photoIndex] + "' " +
+        "style='display:block;width:100%;max-height:220px;object-fit:cover;" +
+        "border:1px solid #c8d4da;border-radius:6px;'>" +
+        "</a><div style='padding-top:4px;font-size:10px;color:#526b78;'>" +
+        photoNames[photoIndex] + "</div></div>";
     }
     html += "</div>";
-  } else {
-    html +=
-      "<div style='margin-top:12px;padding:10px;background:#f4f7f9;" +
-      "border-left:4px solid #8aa4b3;font-size:12px;color:#526b78;'>" +
-      "Sin evidencias adjuntas.</div>";
   }
-  html += "</div>";
 
   var attributes = {};
   for (var sourceFieldIndex in parentFields) {
@@ -526,7 +362,6 @@ for (var parent in parents) {
   attributes.cantidad_lineas = lineCount;
   attributes.cantidad_geometrias = totalCount;
   attributes.area_ha = areaHectares;
-  attributes.cantidad_adjuntos = attachmentCount;
   attributes.html = html;
 
   Push(output.features, {
@@ -535,6 +370,4 @@ for (var parent in parents) {
   });
 }
 
-// Mantener la misma estructura probada de AOIPadresOk.js. Cada geometría
-// conserva su referencia espacial; no se fuerza una distinta en la cabecera.
 return FeatureSet(Text(output));
