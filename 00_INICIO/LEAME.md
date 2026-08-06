@@ -7,7 +7,7 @@ Este paquete permite implementar la solución en una organización ArcGIS nueva.
 1. Leer `05_Documentacion/Manual_Tecnico_Implementacion.html`.
 2. Completar `00_INICIO/INVENTARIO_IMPLEMENTACION.md` durante la publicación.
 3. Publicar el Survey desde `01_Survey123/Singularidades.zip`.
-4. Publicar el modelo consolidado desde `02_Modelo_Datos/ShemaSDE.gdb.zip`.
+4. Migrar el esquema de `02_Modelo_Datos/ShemaSDE.gdb.zip` a la geodatabase corporativa SDE y publicar sus capas como Feature Service referenciado.
 5. Crear Web Maps, Form de edición y Dashboard; registrar sus IDs.
 6. Configurar los Arcade de `04_Popups_Arcade`.
 7. Completar `03_Automatizacion/configuracion_ciren.json`.
@@ -19,7 +19,7 @@ Este paquete permite implementar la solución en una organización ArcGIS nueva.
 ## Estructura
 
 - `01_Survey123`: paquete Survey123 Connect.
-- `02_Modelo_Datos`: geodatabase del servicio consolidado.
+- `02_Modelo_Datos`: File Geodatabase modelo para crear el esquema en SDE y publicar el servicio consolidado referenciado.
 - `03_Automatizacion`: PYT, módulos, notebooks, configuración, ejecutor Windows y logs Esri Chile.
 - `04_Popups_Arcade`: expresiones para puntos y líneas.
 - `05_Documentacion`: manual técnico, guía GP/webhook y manual de logs.

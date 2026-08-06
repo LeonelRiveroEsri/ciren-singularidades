@@ -6,6 +6,7 @@ Los notebooks y tareas Windows deben conservar su ubicación relativa respecto d
 
 - Notebooks y tareas: editar `configuracion_ciren.json`.
 - GP Service: editar el bloque `CONFIG_JSON` dentro de `CatastroConsolidacion.pyt`, incluidos URL, usuario y contraseña de la cuenta técnica.
+- `items.target_feature_service` debe ser el Item ID del Feature Service referenciado cuya fuente son las capas SDE creadas desde `02_Modelo_Datos/ShemaSDE.gdb.zip`.
 - Ambos deben contener los mismos IDs, filtro y rutas.
 - Usar `credenciales.example.json` solo para notebooks y tareas Windows. La PYT publicada no lee ese archivo.
 

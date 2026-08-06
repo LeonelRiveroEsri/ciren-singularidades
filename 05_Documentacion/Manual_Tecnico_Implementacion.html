@@ -104,7 +104,8 @@
 
     <section id="resumen">
       <h2>1. Resumen ejecutivo</h2>
-      <p>La solución es el resultado de una reestructuración del Survey. El modelo anterior guardaba la encuesta completa en una capa de puntos que actuaba como padre. El modelo nuevo deja atributos y evidencias en una tabla padre sin geometría, y distribuye la representación espacial entre dos capas hijas: puntos y líneas. Un revisor habilita la publicación cambiando <code>validacion</code> a <code>si</code>; luego, un notebook incremental vuelve a reunir atributos, geometría y adjuntos en las capas definitivas.</p>
+      <p>La solución es el resultado de una reestructuración del Survey. El modelo anterior guardaba la encuesta completa en una capa de puntos que actuaba como padre. El modelo nuevo deja atributos y evidencias en una tabla padre sin geometría, y distribuye la representación espacial entre dos capas hijas: puntos y líneas. Un revisor habilita la publicación cambiando <code>validacion</code> a <code>si</code>; luego, la herramienta GP reúne atributos, geometría y adjuntos en las capas definitivas.</p>
+      <div class="callout"><strong>Persistencia del destino:</strong> <code>02_Modelo_Datos/ShemaSDE.gdb.zip</code> es la plantilla para crear el esquema en la geodatabase corporativa SDE. Las capas se publican como Feature Service referenciado. La consolidación edita ese servicio mediante ArcGIS REST API y, por lo tanto, los cambios persisten en SDE; la GP no abre directamente la File Geodatabase ni un archivo de conexión <code>.sde</code>.</div>
       <div class="cards">
         <div class="card"><span class="number">1</span><strong>Capturar</strong>El encuestador registra atributos, evaluación, fotografías, croquis y geometría.</div>
         <div class="card"><span class="number">2</span><strong>Validar</strong>El registro permanece como <em>No validado</em> hasta una revisión externa.</div>
@@ -393,7 +394,8 @@ Por cada hijo nuevo:
         <li><strong>Preparar credenciales:</strong> copiar <code>credenciales.example.json</code> a una ubicación segura, completar usuario/contraseña y ajustar su ruta en <code>configuracion_ciren.json</code>.</li>
         <li><strong>Validar IDs:</strong> confirmar los ítems de <code>configuracion_ciren.json</code> y replicarlos en <code>CONFIG_JSON</code> de la PYT antes de publicarla.</li>
         <li><strong>Publicar el Survey:</strong> confirmar tabla padre 0, puntos 1, líneas 2, relaciones y adjuntos habilitados en el padre.</li>
-        <li><strong>Preparar destino:</strong> mantener capas Point y Polyline con los campos del padre, adjuntos habilitados y campo GUID <code>id_unique</code>.</li>
+        <li><strong>Preparar destino SDE:</strong> extraer <code>ShemaSDE.gdb.zip</code>, llevar el esquema Point y Polyline a la geodatabase corporativa SDE y conservar campos, GlobalID, adjuntos e <code>id_unique</code>.</li>
+        <li><strong>Publicar destino:</strong> registrar la conexión SDE en ArcGIS Server y compartir las capas como Feature Service referenciado; usar el Item ID resultante en <code>target_feature_service</code>.</li>
         <li><strong>Proteger unicidad:</strong> cuando la plataforma lo permita, crear un índice único sobre <code>id_unique</code> en cada capa destino.</li>
         <li><strong>Crear revisión:</strong> conectar Dashboard, lista, mapa, popup y Form de edición; permitir que el revisor cambie <code>validacion</code> de <em>No validado</em> a <code>si</code>.</li>
         <li><strong>Configurar notebook:</strong> verificar IDs de ítems, archivo externo de credenciales y <code>PARENT_WHERE = "validacion = 'si'"</code>.</li>

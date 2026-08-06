@@ -11,6 +11,9 @@ Complete esta matriz a medida que publica. Los valores deben copiarse luego a `c
 | Relación padre → puntos | | | | |
 | Relación padre → líneas | | | | |
 | Feature Service consolidado | | | | |
+| Conexión SDE del ambiente destino | | | | |
+| Data Store SDE registrado en ArcGIS Server | | | | |
+| Servicio consolidado publicado como referenciado | | | | |
 | Capa final de puntos | | | | |
 | Capa final de líneas | | | | |
 | Web Map de revisión | | | | |
@@ -33,6 +36,8 @@ Complete esta matriz a medida que publica. Los valores deben copiarse luego a `c
 - [ ] La segunda ejecución no duplica registros.
 - [ ] Atributos y mapeo de cotas son correctos.
 - [ ] Adjuntos se copian y visualizan.
+- [ ] El esquema de `ShemaSDE.gdb` fue creado en la SDE corporativa.
+- [ ] El servicio destino está referenciado a SDE y no publicado como capa alojada.
 - [ ] Regex encuentra la cantidad configurada de `var token`.
 - [ ] `ActualizarTokensScheduler.py` finaliza con código 0 y deja log institucional.
 - [ ] Task Scheduler ejecuta con la cuenta técnica aunque no haya sesión abierta.

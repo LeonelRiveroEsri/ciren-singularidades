@@ -21,6 +21,14 @@ La herramienta no recibe parámetros, pero el análisis de ArcGIS Pro debe empaq
 
 No publicar únicamente una copia aislada de la `.pyt`. Preparar una carpeta con ambos archivos, agregar la toolbox al proyecto desde esa carpeta y revisar el análisis de **Compartir como herramienta web**. Si `consolidar_survey.py` no aparece entre las dependencias incorporadas, cancelar la publicación y corregir la carpeta de origen.
 
+## Destino referenciado a SDE
+
+`02_Modelo_Datos/ShemaSDE.gdb.zip` es el modelo de estructura para crear las capas finales en la geodatabase corporativa SDE del ambiente nuevo. Después de transferir el esquema, registrar la conexión SDE como Data Store de ArcGIS Server y publicar puntos y líneas como un Feature Service referenciado.
+
+La GP no escribe directamente sobre un archivo `.sde` ni sobre `ShemaSDE.gdb`. Se conecta al Portal y carga la información mediante ArcGIS REST API sobre el ítem definido en `items.target_feature_service`. Como ese servicio es referenciado, las ediciones REST persisten en las capas de la SDE.
+
+Antes de habilitar el webhook, confirmar que el servicio permite consulta, edición y adjuntos; que conserva GlobalID; y que ambas capas incluyen `id_unique` con el tipo previsto por el modelo.
+
 ## Configuración interna y credenciales
 
 La PYT publicada no busca `credenciales.json`. Antes de publicar, crear una copia local llamada `CatastroConsolidacion.publicacion.pyt` —excluida por `.gitignore`— y completar dentro de `CONFIG_JSON`:
