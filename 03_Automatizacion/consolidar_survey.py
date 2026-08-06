@@ -235,6 +235,60 @@ def result_success(result: Dict[str, Any]) -> bool:
     return bool(result and result.get("success"))
 
 
+def geometry_for_target_z(
+    geometry: Optional[Dict[str, Any]], target_layer: FeatureLayer
+) -> Optional[Dict[str, Any]]:
+    """Completa Z=0 cuando el servicio destino exige geometrías con Z.
+
+    Survey123 puede entregar puntos o líneas 2D aunque la capa publicada desde
+    SDE tenga ``hasZ=true``. La API REST rechaza esos vértices; por eso se
+    agrega la tercera coordenada sin modificar XY, M ni la referencia espacial.
+    """
+    if geometry is None or not target_layer.properties.get("hasZ", False):
+        return geometry
+
+    output = dict(geometry)
+    source_has_z = bool(output.get("hasZ", False))
+    source_has_m = bool(output.get("hasM", False))
+
+    if "x" in output and "y" in output:
+        if output.get("z") is None:
+            output["z"] = 0
+        output["hasZ"] = True
+        return output
+
+    def vertex_with_z(vertex):
+        if not isinstance(vertex, (list, tuple)) or len(vertex) < 2:
+            return vertex
+        coordinates = list(vertex)
+        if source_has_z:
+            if len(coordinates) < 3:
+                coordinates.append(0)
+            elif coordinates[2] is None:
+                coordinates[2] = 0
+        else:
+            # En una geometría con M pero sin Z, M ocupa la tercera posición.
+            # Insertar preserva el orden REST esperado: X, Y, Z, M.
+            coordinates.insert(2, 0)
+        return coordinates
+
+    for collection_name in ("paths", "rings", "points"):
+        collections = output.get(collection_name)
+        if collections is None:
+            continue
+        if collection_name == "points":
+            output[collection_name] = [vertex_with_z(vertex) for vertex in collections]
+        else:
+            output[collection_name] = [
+                [vertex_with_z(vertex) for vertex in part] for part in collections
+            ]
+
+    output["hasZ"] = True
+    if source_has_m:
+        output["hasM"] = True
+    return output
+
+
 def edit_one(
     target_layer: FeatureLayer,
     payload: Feature,
@@ -381,7 +435,8 @@ def consolidate_geometry_type(
         else:
             target_oid = None
 
-        payload = Feature(geometry=child.geometry, attributes=attributes)
+        target_geometry = geometry_for_target_z(child.geometry, target_layer)
+        payload = Feature(geometry=target_geometry, attributes=attributes)
         if dry_run:
             success = True
             if operation == "add":
