@@ -14,13 +14,12 @@ El disparador es el webhook de la **encuesta Survey123 de edición** y no debe c
 
 ## Componentes de publicación
 
-La herramienta no recibe parámetros, pero el análisis de ArcGIS Pro debe empaquetar estos tres archivos conservando su ubicación relativa:
+La herramienta no recibe parámetros, pero el análisis de ArcGIS Pro debe empaquetar estos archivos conservando su ubicación relativa:
 
 - `CatastroConsolidacion.pyt`: entrada GP y `CONFIG_JSON` interno.
 - `consolidar_survey.py`: consolidación, geometrías, cotas, `id_unique` y adjuntos.
-- `Lib/__init__.py` y `Lib/esrilogs.py`: paquete de trazabilidad institucional Esri Chile.
 
-No publicar únicamente una copia aislada de la `.pyt`. Preparar una carpeta con todos los componentes, agregar la toolbox al proyecto desde esa carpeta y revisar el análisis de **Compartir como herramienta web**. Si `consolidar_survey.py` o el paquete `Lib` no aparecen entre las dependencias incorporadas, cancelar la publicación y corregir la carpeta de origen.
+No publicar únicamente una copia aislada de la `.pyt`. Preparar una carpeta con ambos archivos, agregar la toolbox al proyecto desde esa carpeta y revisar el análisis de **Compartir como herramienta web**. Si `consolidar_survey.py` no aparece entre las dependencias incorporadas, cancelar la publicación y corregir la carpeta de origen.
 
 ## Configuración interna y credenciales
 
@@ -36,19 +35,21 @@ La PYT publicada no busca `credenciales.json`. Antes de publicar, crear una copi
 }
 ```
 
-Completar también los IDs del Survey y del servicio consolidado, el filtro `validacion = 'si'` y la ruta persistente de logs. La copia configurada contiene una contraseña: no debe confirmarse en Git, enviarse por correo ni conservarse en una carpeta compartida. El repositorio mantiene solamente marcadores.
+Completar también los IDs del Survey y del servicio consolidado y el filtro `validacion = 'si'`. La copia configurada contiene una contraseña: no debe confirmarse en Git, enviarse por correo ni conservarse en una carpeta compartida. El repositorio mantiene solamente marcadores.
 
 Los notebooks y el ejecutor de Windows son artefactos diferentes y continúan leyendo sus credenciales desde el archivo externo configurado.
 
 ## Publicar el GP Service
 
-1. Copiar `CatastroConsolidacion.pyt`, `consolidar_survey.py` y `Lib/esrilogs.py` a una carpeta local de preparación.
+1. Copiar `CatastroConsolidacion.pyt` y `consolidar_survey.py` a una carpeta local de preparación.
 2. Completar `CONFIG_JSON` solamente en esa copia de la PYT.
 3. Agregar la toolbox a ArcGIS Pro y ejecutar **Consolidar encuestas validadas**.
 4. Confirmar que procesa únicamente padres con `validacion = 'si'` y que una segunda ejecución no duplica datos.
 5. Compartir el resultado como herramienta web o servicio de geoprocesamiento asíncrono.
 6. Revisar los mensajes del analizador y confirmar que los dos módulos Python fueron empaquetados.
-7. Probar `submitJob`, esperar `esriJobSucceeded` y revisar el log Esri Chile.
+7. Probar `submitJob`, esperar `esriJobSucceeded` y revisar los mensajes del trabajo GP.
+
+La GP no importa `Lib.esrilogs`, no contiene una sección de configuración de logs y no crea archivos en el servidor de ArcGIS Server. Los avances, métricas y errores se exponen únicamente con `arcpy.AddMessage` y `arcpy.AddError`.
 
 ## Configurar el webhook Survey123
 

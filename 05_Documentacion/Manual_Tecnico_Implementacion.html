@@ -383,7 +383,7 @@ Por cada hijo nuevo:
           <tr><td><code>001.ipynb</code> y <code>Actualizar_token_Arcade_CIREN.ipynb</code></td><td>Pruebas, diagnóstico y operación manual.</td></tr>
         </tbody>
       </table>
-      <div class="callout warn"><strong>Publicación de la PYT:</strong> crear <code>CatastroConsolidacion.publicacion.pyt</code> —excluida por <code>.gitignore</code>—, completar <code>CONFIG_JSON</code> y publicar desde una carpeta que contenga también <code>consolidar_survey.py</code>, <code>Lib/__init__.py</code> y <code>Lib/esrilogs.py</code>. Revisar que el analizador de ArcGIS Pro incorpore los módulos. La PYT publicada no busca un archivo externo de credenciales.</div>
+      <div class="callout warn"><strong>Publicación de la PYT:</strong> crear <code>CatastroConsolidacion.publicacion.pyt</code> —excluida por <code>.gitignore</code>—, completar <code>CONFIG_JSON</code> y publicar desde una carpeta que contenga también <code>consolidar_survey.py</code>. Revisar que el analizador de ArcGIS Pro incorpore ese módulo. La PYT no busca un archivo externo de credenciales ni crea archivos de log en ArcGIS Server; informa exclusivamente mediante mensajes <code>arcpy</code>.</div>
     </section>
 
     <section id="implementacion">
@@ -401,7 +401,7 @@ Por cada hijo nuevo:
         <li><strong>Publicar:</strong> cambiar temporalmente a <code>EXECUTE_CHANGES = True</code> y ejecutar la actualización.</li>
         <li><strong>Verificar:</strong> comparar conteos, geometrías, atributos, <code>id_unique</code> y cantidad de adjuntos.</li>
         <li><strong>Configurar popups:</strong> Arcade relacional en Survey; campos y adjuntos directos en capas consolidadas.</li>
-        <li><strong>Publicar GP:</strong> preparar una copia no versionada de <code>CatastroConsolidacion.pyt</code> con credenciales internas y desplegarla junto a <code>consolidar_survey.py</code> y <code>Lib/esrilogs.py</code>, verificando las dependencias en el análisis.</li>
+        <li><strong>Publicar GP:</strong> preparar una copia no versionada de <code>CatastroConsolidacion.pyt</code> con credenciales internas y desplegarla junto a <code>consolidar_survey.py</code>, verificando esa dependencia en el análisis. La ejecución reporta solo mensajes <code>arcpy</code>.</li>
         <li><strong>Conectar evento:</strong> configurar el webhook en la encuesta Survey123 de edición; aceptar <code>editData</code>, comprobar <code>validacion='si'</code> e invocar <code>submitJob</code>.</li>
         <li><strong>Agendar tokens:</strong> registrar <code>ActualizarTokensScheduler.py</code> con <code>propy.bat</code> en Windows Task Scheduler, ejecutarlo diariamente y verificar <code>expected_matches</code>, el código de salida y el log.</li>
       </ol>

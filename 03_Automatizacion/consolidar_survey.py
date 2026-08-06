@@ -7,13 +7,13 @@ El módulo no se ejecuta por sí solo. Está diseñado para ser llamado desde
 from __future__ import annotations
 
 import tempfile
+import traceback
 from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from arcgis.features import Feature, FeatureLayer
 from arcgis.gis import GIS
-from Lib.esrilogs import capturaError
 
 
 def _log(logs, level: str, message: str):
@@ -260,7 +260,11 @@ def copy_missing_attachments(
             except Exception as error:
                 summary["failed"] += 1
                 if logs is not None:
-                    capturaError(error, f"Error copiando adjunto {info.get('name')} del OID {source_oid}", logs)
+                    logs.error(
+                        f"Error copiando adjunto {info.get('name')} del OID {source_oid}"
+                    )
+                    logs.error(str(error))
+                    logs.error(traceback.format_exc())
     return dict(summary)
 
 

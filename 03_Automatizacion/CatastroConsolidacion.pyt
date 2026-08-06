@@ -16,7 +16,6 @@ TOOLBOX_DIR = Path(__file__).resolve().parent
 if str(TOOLBOX_DIR) not in sys.path:
     sys.path.insert(0, str(TOOLBOX_DIR))
 
-from Lib.esrilogs import Logfile, capturaError  # noqa: E402
 from consolidar_survey import run_consolidation  # noqa: E402
 
 
@@ -45,11 +44,6 @@ CONFIG_JSON = r'''
     "parent_where": "validacion = 'si'",
     "update_existing": false,
     "sync_attachments": true
-  },
-  "logs": {
-    "path": "C:/CIREN/Logs",
-    "max_age_days": 30,
-    "rotate_mode": "archive"
   }
 }
 '''
@@ -57,7 +51,7 @@ CONFIG_JSON = r'''
 
 def load_embedded_config():
     config = json.loads(CONFIG_JSON)
-    required = {"arcgis", "items", "consolidation", "logs"}
+    required = {"arcgis", "items", "consolidation"}
     missing = required - set(config)
     if missing:
         raise ValueError("Faltan secciones en CONFIG_JSON: {}".format(sorted(missing)))
@@ -81,7 +75,7 @@ def connect_gis(config):
     )
 
 
-def report_messages(report, logs):
+def report_messages(report):
     for geometry_name, metrics in report.items():
         message = (
             "{} | origen={} | insertados={} | ya_cargados={} | filtrados={} | "
@@ -96,7 +90,6 @@ def report_messages(report, logs):
             metrics.get("attachments_copied", 0),
             metrics.get("failed", 0) + metrics.get("attachments_failed", 0),
         )
-        logs.info(message)
         arcpy.AddMessage(message)
 
 
@@ -130,7 +123,6 @@ class ConsolidarEncuestasValidadas(object):
         return
 
     def execute(self, parameters, messages):
-        logs = None
         arcpy.SetProgressor("default", "Consolidando encuestas validadas...")
         arcpy.AddMessage("Inicio de consolidación incremental.")
 
@@ -138,15 +130,6 @@ class ConsolidarEncuestasValidadas(object):
             config = load_embedded_config()
             items = config["items"]
             consolidation = config["consolidation"]
-            log_config = config["logs"]
-            logs = Logfile(
-                "CatastroConsolidacionGP",
-                log_path=Path(log_config["path"]),
-                max_age_days=log_config.get("max_age_days", 30),
-                rotate_mode=log_config.get("rotate_mode", "archive"),
-            )
-            logs.start_script("Inicio de consolidacion GP")
-            logs.info("Configuracion JSON embebida cargada correctamente")
             arcpy.AddMessage("Configuración JSON cargada correctamente.")
             arcpy.AddMessage("Filtro: {}".format(consolidation["parent_where"]))
             gis = connect_gis(config)
@@ -159,9 +142,8 @@ class ConsolidarEncuestasValidadas(object):
                 dry_run=False,
                 update_existing=consolidation["update_existing"],
                 sync_attachments=consolidation["sync_attachments"],
-                logs=logs,
             )
-            report_messages(report, logs)
+            report_messages(report)
 
             failures = sum(
                 values.get("failed", 0) + values.get("attachments_failed", 0)
@@ -175,16 +157,11 @@ class ConsolidarEncuestasValidadas(object):
                     )
                 )
 
-            logs.end("Consolidacion finalizada correctamente")
             arcpy.AddMessage("Consolidación finalizada correctamente.")
             arcpy.SetProgressorLabel("Proceso completado")
         except Exception as error:
-            if logs is not None:
-                capturaError(error, "Error general de consolidacion GP", logs)
             arcpy.AddError(str(error))
             raise arcpy.ExecuteError
         finally:
-            if logs is not None:
-                logs.close("Proceso GP finalizado")
             arcpy.ResetProgressor()
 

@@ -1,6 +1,6 @@
 ﻿# Automatización
 
-Todos los archivos de esta carpeta deben conservar su ubicación relativa. `Lib/esrilogs.py` es una dependencia obligatoria.
+Los notebooks y tareas Windows deben conservar su ubicación relativa respecto de `Lib/esrilogs.py`. La PYT no usa logs de archivo.
 
 ## Configuración
 
@@ -30,8 +30,7 @@ Publicar desde una carpeta de preparación que contenga juntos:
 
 - `CatastroConsolidacion.pyt`
 - `consolidar_survey.py`
-- `Lib/esrilogs.py`
 
-La herramienta no recibe parámetros. La cuenta de ArcGIS Server debe poder escribir en la ruta de logs configurada.
+La herramienta no recibe parámetros ni crea archivos en ArcGIS Server. Toda su salida operacional se entrega mediante mensajes `arcpy` del trabajo GP.
 
-Crear la copia como `CatastroConsolidacion.publicacion.pyt`; ese patrón está excluido por `.gitignore`. Su contraseña queda dentro de `CONFIG_JSON`: no distribuirla como fuente. ArcGIS Pro debe incluir `consolidar_survey.py`, `Lib/__init__.py` y `Lib/esrilogs.py` como dependencias al crear la definición del servicio; revisar el análisis de publicación y el contenido preparado antes de cargarlo en el servidor.
+Crear la copia como `CatastroConsolidacion.publicacion.pyt`; ese patrón está excluido por `.gitignore`. Su contraseña queda dentro de `CONFIG_JSON`: no distribuirla como fuente. ArcGIS Pro debe incluir `consolidar_survey.py` como dependencia al crear la definición del servicio; revisar el análisis de publicación antes de cargarlo en el servidor.
