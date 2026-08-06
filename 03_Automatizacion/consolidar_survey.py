@@ -238,7 +238,7 @@ def result_success(result: Dict[str, Any]) -> bool:
 def geometry_for_target_z(
     geometry: Optional[Dict[str, Any]], target_layer: FeatureLayer
 ) -> Optional[Dict[str, Any]]:
-    """Completa Z=0 cuando el servicio destino exige geometrías con Z.
+    """Completa Z=1 cuando el servicio destino exige geometrías con Z.
 
     Survey123 puede entregar puntos o líneas 2D aunque la capa publicada desde
     SDE tenga ``hasZ=true``. La API REST rechaza esos vértices; por eso se
@@ -253,7 +253,7 @@ def geometry_for_target_z(
 
     if "x" in output and "y" in output:
         if output.get("z") is None:
-            output["z"] = 0
+            output["z"] = 1
         output["hasZ"] = True
         return output
 
@@ -263,13 +263,13 @@ def geometry_for_target_z(
         coordinates = list(vertex)
         if source_has_z:
             if len(coordinates) < 3:
-                coordinates.append(0)
+                coordinates.append(1)
             elif coordinates[2] is None:
-                coordinates[2] = 0
+                coordinates[2] = 1
         else:
             # En una geometría con M pero sin Z, M ocupa la tercera posición.
             # Insertar preserva el orden REST esperado: X, Y, Z, M.
-            coordinates.insert(2, 0)
+            coordinates.insert(2, 1)
         return coordinates
 
     for collection_name in ("paths", "rings", "points"):
