@@ -22,3 +22,6 @@ credentials.json
 Thumbs.db
 .vscode/
 .idea/
+
+# Ambiente local con IDs de desarrollo
+/testing/
