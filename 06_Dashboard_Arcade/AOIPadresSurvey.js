@@ -253,7 +253,7 @@ var pointRelationship = relationshipFields(parentFields, pointFields);
 var lineRelationship = relationshipFields(parentFields, lineFields);
 
 if (pointRelationship == null || lineRelationship == null) {
-  return FeatureSet(Text({
+  return FeatureSet({
     fields: [
       { name: "error", alias: "Error de relación", type: "esriFieldTypeString" },
     ],
@@ -267,7 +267,7 @@ if (pointRelationship == null || lineRelationship == null) {
         geometry: null,
       },
     ],
-  }));
+  });
 }
 
 var outputFields = [];
@@ -327,7 +327,6 @@ Push(outputFields, {
   name: "html",
   alias: "Tarjeta HTML",
   type: "esriFieldTypeString",
-  length: 32767,
 });
 
 var output = {
@@ -536,6 +535,6 @@ for (var parent in parents) {
   });
 }
 
-// Dashboard Data exige un FeatureSet. No sustituir este retorno por
-// `return output`, `return output.features` ni valores escalares al depurar.
-return FeatureSet(Text(output));
+// Se entrega el Dictionary directamente para conservar geometrías y textos
+// extensos sin una serialización intermedia. Requiere Arcade 1.19 o superior.
+return FeatureSet(output);
