@@ -10,6 +10,10 @@
 - Los campos calculados `cantidad_puntos`, `cantidad_lineas`, `cantidad_geometrias` y `area_ha`.
 - El campo `html`, con una tarjeta profesional lista para el elemento Lista.
 
+La relación se detecta por separado para puntos y líneas. La expresión admite
+`uniquerowid` → `parentrowid` y `globalid` → `parentglobalid`, por lo que funciona
+con las dos variantes habituales de publicación de Survey123.
+
 El ObjectID del origen se excluye porque es un campo de sistema y no identifica de manera estable al registro. Para relacionar selecciones y acciones se debe usar `globalid`.
 
 ## Configuración obligatoria
