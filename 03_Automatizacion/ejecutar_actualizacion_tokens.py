@@ -4,8 +4,12 @@ import sys
 from pathlib import Path
 
 from Lib.esrilogs import Logfile, capturaError
-from actualizar_tokens_arcade import refresh_item_tokens
-from configuracion_ciren import connect_gis_from_config, load_solution_config
+from actualizar_tokens_arcade import generate_portal_token, refresh_item_tokens
+from configuracion_ciren import (
+    connect_gis_from_config,
+    load_credentials,
+    load_solution_config,
+)
 
 
 def main() -> int:
@@ -23,10 +27,22 @@ def main() -> int:
         token_config = config["arcade_tokens"]
         item_ids = token_config["item_ids"]
         expected_matches = token_config["expected_matches"]
+        credentials = load_credentials(config)
         gis = connect_gis_from_config(config)
         logs.info("Conexion GIS autenticada")
+        new_token = generate_portal_token(
+            portal_url=credentials["url"],
+            username=credentials["username"],
+            password=credentials["password"],
+            referer=token_config["referer"],
+            expiration_minutes=int(token_config.get("expiration_minutes", 21600)),
+            timeout_seconds=int(token_config.get("request_timeout_seconds", 60)),
+        )
+        logs.info("Token solicitado mediante generateToken; valor no registrado")
 
-        simulation = refresh_item_tokens(gis, item_ids, dry_run=True, logs=logs)
+        simulation = refresh_item_tokens(
+            gis, item_ids, new_token, dry_run=True, logs=logs
+        )
         matches = sum(item["matches"] for item in simulation)
         logs.info(f"Simulacion: {matches} asignaciones localizadas")
         if matches != expected_matches:
@@ -36,7 +52,9 @@ def main() -> int:
             )
             return 2
 
-        result = refresh_item_tokens(gis, item_ids, dry_run=False, logs=logs)
+        result = refresh_item_tokens(
+            gis, item_ids, new_token, dry_run=False, logs=logs
+        )
         updated_items = sum(1 for item in result if item["updated"])
         logs.end(
             f"Renovacion completada: {updated_items} items y {matches} expresiones"

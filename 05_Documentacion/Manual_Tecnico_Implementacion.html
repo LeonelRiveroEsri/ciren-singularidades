@@ -282,12 +282,13 @@ Por cada hijo nuevo:
           <tr><td>Capas consolidadas</td><td>Configurar directamente campos y adjuntos nativos del popup. No usar Arcade relacional: estas capas ya contienen toda la ficha y no tienen relaciones.</td></tr>
         </tbody>
       </table>
-      <div class="callout warn"><strong>Seguridad:</strong> nunca escribir tokens de ArcGIS dentro de Arcade. Un token fijo expira y expone una credencial. El archivo histórico <code>arcadefotos.js</code> debe considerarse obsoleto.</div>
+      <div class="callout warn"><strong>Seguridad:</strong> este diseño inserta un token temporal en Arcade para resolver fotografías. El token puede ser inspeccionado por usuarios con acceso al ítem; limite el acceso, use HTTPS, vincúlelo mediante <code>referer</code> y nunca registre su valor. El archivo histórico <code>arcadefotos.js</code> debe considerarse obsoleto.</div>
     </section>
 
     <section id="tokens">
       <h2>9. Renovación programada de tokens Arcade</h2>
       <p>El Web Map de revisión contiene dos expresiones Arcade con una variable <code>var token</code>: una para líneas y otra para puntos. El token permite construir las URLs REST de adjuntos utilizadas por las imágenes del popup. Como los tokens caducan, se incorporó un proceso de renovación agendada.</p>
+      <p>El actualizador ejecuta un POST HTTPS a <code>&lt;URL_PORTAL&gt;/sharing/rest/generateToken</code> con usuario, contraseña, <code>client=referer</code>, el <code>referer</code> de la aplicación y <code>expiration=21600</code>. ArcGIS expresa la duración en minutos: 21.600 minutos equivalen a 15 días. Portal puede reducir la vigencia según su política. No se utiliza el token interno de <code>GIS._con</code>.</p>
       <table>
         <thead><tr><th>Archivo</th><th>Propósito</th></tr></thead>
         <tbody>
@@ -308,7 +309,7 @@ Por cada hijo nuevo:
       </ul>
       <h3>Agendamiento recomendado</h3>
       <ol>
-        <li>Ejecutar diariamente desde ArcGIS Notebook Server, Windows Task Scheduler o el planificador institucional.</li>
+        <li>Ejecutar cada 10 días desde Windows Task Scheduler o el planificador institucional, ajustando el intervalo a la vigencia efectiva entregada por Portal.</li>
         <li>Conectar con una cuenta técnica de privilegios mínimos que pueda leer y actualizar el Web Map.</li>
         <li>Ejecutar primero <code>dry_run=True</code> en la puesta en marcha.</li>
         <li>Ejecutar <code>dry_run=False</code>, verificar la cantidad configurada y comprobar fotografías en el Dashboard.</li>
@@ -334,7 +335,7 @@ Por cada hijo nuevo:
         <thead><tr><th>Automatización</th><th>Frecuencia</th><th>Resultado esperado</th></tr></thead>
         <tbody>
           <tr><td>GP por edición validada</td><td>Por evento</td><td>Publicación rápida del registro aprobado.</td></tr>
-          <tr><td>Renovación token Arcade</td><td>Diaria o antes del vencimiento</td><td>Fotografías visibles en popups del Dashboard.</td></tr>
+          <tr><td>Renovación token Arcade</td><td>Cada 10 días o antes del vencimiento efectivo</td><td>Fotografías visibles en popups del Dashboard.</td></tr>
         </tbody>
       </table>
       <div class="callout ok"><strong>Regla operativa:</strong> la GP se ejecuta exclusivamente por el webhook de la encuesta Survey123 de edición. No se agenda la consolidación. El único proceso programado es la renovación de tokens Arcade.</div>
@@ -350,7 +351,7 @@ Por cada hijo nuevo:
           <tr><td><code>arcgis</code></td><td>En notebooks: ruta y perfil externo. En la PYT: URL, usuario y contraseña embebidos en la copia de publicación.</td></tr>
           <tr><td><code>items</code></td><td>Solo los Item IDs del Feature Service Survey origen y del Feature Service referenciado destino.</td></tr>
           <tr><td><code>consolidation</code></td><td>Filtro de aprobación, <code>id_unique</code>, adjuntos y política de actualización.</td></tr>
-          <tr><td><code>arcade_tokens</code></td><td>Lista independiente de Web Maps o Dashboards que realmente contienen <code>var token</code>, coincidencias esperadas y habilitación del notebook.</td></tr>
+          <tr><td><code>arcade_tokens</code></td><td>Ítems con <code>var token</code>, <code>referer</code>, duración solicitada en minutos, timeout, coincidencias esperadas y habilitación del notebook.</td></tr>
           <tr><td><code>automation</code></td><td>Horario recomendado para la renovación programada de tokens.</td></tr>
         </tbody>
       </table>
@@ -405,7 +406,7 @@ Por cada hijo nuevo:
         <li><strong>Configurar popups:</strong> Arcade relacional en Survey; campos y adjuntos directos en capas consolidadas.</li>
         <li><strong>Publicar GP:</strong> preparar una copia no versionada de <code>CatastroConsolidacion.pyt</code> con credenciales internas y desplegarla junto a <code>consolidar_survey.py</code>, verificando esa dependencia en el análisis. La ejecución reporta solo mensajes <code>arcpy</code>.</li>
         <li><strong>Conectar evento:</strong> configurar el webhook en la encuesta Survey123 de edición; aceptar <code>editData</code>, comprobar <code>validacion='si'</code> e invocar <code>submitJob</code>.</li>
-        <li><strong>Agendar tokens:</strong> registrar <code>ActualizarTokensScheduler.py</code> con <code>propy.bat</code> en Windows Task Scheduler, ejecutarlo diariamente y verificar <code>expected_matches</code>, el código de salida y el log.</li>
+        <li><strong>Agendar tokens:</strong> registrar <code>ActualizarTokensScheduler.py</code> con <code>propy.bat</code> en Windows Task Scheduler, ejecutarlo cada 10 días y verificar <code>expected_matches</code>, el código de salida y el log.</li>
       </ol>
     </section>
 

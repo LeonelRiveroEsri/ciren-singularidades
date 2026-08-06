@@ -39,6 +39,7 @@ Complete esta matriz a medida que publica. Los valores deben copiarse luego a `c
 - [ ] El esquema de `ShemaSDE.gdb` fue creado en la SDE corporativa.
 - [ ] El servicio destino está referenciado a SDE y no publicado como capa alojada.
 - [ ] Regex encuentra la cantidad configurada de `var token`.
+- [ ] `generateToken` acepta `referer` y `expiration_minutes = 21600`; se verificó la vigencia efectiva aplicada por Portal.
 - [ ] `ActualizarTokensScheduler.py` finaliza con código 0 y deja log institucional.
 - [ ] Task Scheduler ejecuta con la cuenta técnica aunque no haya sesión abierta.
 - [ ] GP Service ejecuta sin parámetros.

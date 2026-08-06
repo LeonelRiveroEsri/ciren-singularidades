@@ -18,11 +18,15 @@
     "item_ids": [
       "<ITEM_ID_WEBMAP_REVISION>"
     ],
+    "referer": "<URL_REFERER_APLICACION>",
+    "expiration_minutes": 21600,
+    "request_timeout_seconds": 60,
     "expected_matches": 2,
     "schedule_recommendation": "daily",
     "notebook_execute_changes": false
   },
   "automation": {
+    "token_refresh_days": 10,
     "token_refresh_hour": "02:00"
   },
   "logs": {

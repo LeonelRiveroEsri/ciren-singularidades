@@ -9,6 +9,8 @@ Los notebooks y tareas Windows deben conservar su ubicación relativa respecto d
 - `items.target_feature_service` debe ser el Item ID del Feature Service referenciado cuya fuente son las capas SDE creadas desde `02_Modelo_Datos/ShemaSDE.gdb.zip`.
 - `items.survey_feature_service` y `items.target_feature_service` son los únicos IDs usados por la consolidación.
 - `arcade_tokens.item_ids` es una lista independiente: agregar solamente los Web Maps o Dashboards cuyo JSON contiene las expresiones Arcade con `var token`.
+- `arcade_tokens.referer` debe coincidir con la aplicación web desde la cual el navegador solicitará las imágenes.
+- `arcade_tokens.expiration_minutes` usa minutos: `21600` solicita 15 días. Portal puede aplicar un máximo menor según su política.
 - Los IDs del Dashboard, la encuesta de edición y otros Web Maps pertenecen al inventario de implementación, no a la configuración de los scripts.
 - Ambos deben contener los mismos IDs, filtro y rutas.
 - Usar `credenciales.example.json` solo para notebooks y tareas Windows. La PYT publicada no lee ese archivo.
@@ -27,6 +29,7 @@ Los notebooks y tareas Windows deben conservar su ubicación relativa respecto d
 - `ejecutar_actualizacion_tokens.py`: ejecutor genérico conservado para compatibilidad; para una nueva tarea de Windows usar `ActualizarTokensScheduler.py`.
 
 El ejecutor realiza siempre una simulación previa y cancela sin escribir si la cantidad encontrada difiere de `arcade_tokens.expected_matches`.
+El token se obtiene con un POST HTTPS a `<portal>/sharing/rest/generateToken`, usando `client=referer`; no se reutiliza el token interno de `GIS._con`.
 
 ## Publicación PYT
 

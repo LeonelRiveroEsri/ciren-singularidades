@@ -1,11 +1,11 @@
 # Renovación de tokens con Windows Task Scheduler
 
-Esta tarea ejecuta `ActualizarTokensScheduler.py` sin interacción. El script carga la configuración y las credenciales desde las rutas definidas en `configuracion_ciren.json`, genera un token nuevo, simula primero la modificación de Arcade y solo escribe si encuentra exactamente `expected_matches` coincidencias.
+Esta tarea ejecuta `ActualizarTokensScheduler.py` sin interacción. El script carga la configuración y las credenciales desde las rutas definidas en `configuracion_ciren.json`, solicita un token nuevo mediante `POST /sharing/rest/generateToken`, simula primero la modificación de Arcade y solo escribe si encuentra exactamente `expected_matches` coincidencias.
 
 ## 1. Preparación
 
 1. Copiar la carpeta completa `03_Automatizacion` al servidor o equipo de automatización.
-2. Completar `configuracion_ciren.json` con la URL del portal, los IDs del ambiente nuevo, `expected_matches`, la ruta de credenciales y la carpeta de logs.
+2. Completar `configuracion_ciren.json` con la URL del portal, los IDs, `referer`, `expiration_minutes`, `expected_matches`, la ruta de credenciales y la carpeta de logs. Para 15 días usar `21600` minutos.
 3. Crear el archivo de credenciales a partir de `credenciales.example.json`. Restringir sus permisos a la cuenta que ejecutará la tarea.
 4. Confirmar que esa cuenta puede iniciar sesión en el portal y actualizar los Web Maps configurados.
 5. Localizar `propy.bat`. La instalación estándar de ArcGIS Pro suele incluirlo en:
@@ -31,7 +31,7 @@ Esta última orden realiza la actualización efectiva cuando la simulación coin
 En **Programador de tareas > Crear tarea**:
 
 - **General:** usar una cuenta técnica; seleccionar *Ejecutar tanto si el usuario inició sesión como si no*. Usar privilegios elevados únicamente si la política del servidor lo exige.
-- **Desencadenador:** diario, antes del horario operativo. Ajustar la frecuencia a la vigencia de los tokens del portal.
+- **Desencadenador:** cada 10 días, antes del horario operativo, para renovar con margen un token solicitado por 15 días. Ajustar el intervalo si Portal aplica una vigencia efectiva menor.
 - **Acción > Programa o script:** `C:\Program Files\ArcGIS\Pro\bin\Python\Scripts\propy.bat`
 - **Agregar argumentos:** `"C:\CIREN\Catastro\03_Automatizacion\ActualizarTokensScheduler.py"`
 - **Iniciar en:** `C:\CIREN\Catastro\03_Automatizacion`

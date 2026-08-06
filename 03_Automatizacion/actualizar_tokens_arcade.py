@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import copy
+import json
 import re
 from dataclasses import dataclass, asdict
 from typing import Any, Dict, Iterable, List
+from urllib import error, parse, request
 
 from arcgis.gis import GIS
 
@@ -81,22 +83,78 @@ def _replace_mutable(value: Any, new_token: str, path: str = "$"):
     return matches, paths
 
 
-def connection_token(gis: GIS) -> str:
-    """Obtiene el token de la sesión sin imprimirlo ni persistirlo localmente."""
-    token = getattr(gis._con, "token", None)
+def generate_portal_token(
+    portal_url: str,
+    username: str,
+    password: str,
+    referer: str,
+    expiration_minutes: int = 21600,
+    timeout_seconds: int = 60,
+) -> str:
+    """Solicita a Portal un token ligado a referer mediante generateToken.
+
+    ArcGIS interpreta ``expiration`` en minutos. El Portal puede aplicar una
+    vigencia menor si su política de seguridad limita el valor solicitado.
+    """
+    portal_root = portal_url.rstrip("/")
+    if portal_root.endswith("/sharing/rest"):
+        portal_root = portal_root[: -len("/sharing/rest")]
+    if not portal_root.lower().startswith("https://"):
+        raise ValueError("portal_url debe utilizar HTTPS.")
+    if not referer or not referer.lower().startswith("https://"):
+        raise ValueError("referer debe ser una URL HTTPS.")
+    if int(expiration_minutes) <= 0:
+        raise ValueError("expiration_minutes debe ser mayor que cero.")
+
+    token_url = f"{portal_root}/sharing/rest/generateToken"
+    payload = parse.urlencode(
+        {
+            "username": username,
+            "password": password,
+            "client": "referer",
+            "referer": referer,
+            "expiration": int(expiration_minutes),
+            "f": "json",
+        }
+    ).encode("utf-8")
+    token_request = request.Request(
+        token_url,
+        data=payload,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        method="POST",
+    )
+    try:
+        with request.urlopen(token_request, timeout=int(timeout_seconds)) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except error.HTTPError as exc:
+        raise RuntimeError(f"generateToken respondió HTTP {exc.code}.") from exc
+    except error.URLError as exc:
+        raise RuntimeError(f"No fue posible conectar con generateToken: {exc.reason}") from exc
+
+    if "error" in result:
+        rest_error = result["error"]
+        message = rest_error.get("message", "Error REST sin descripción")
+        details = "; ".join(rest_error.get("details") or [])
+        raise RuntimeError(
+            f"generateToken rechazó la solicitud: {message}"
+            + (f" ({details})" if details else "")
+        )
+    token = result.get("token")
     if not token:
-        raise RuntimeError("La conexión GIS no entregó un token autenticado.")
+        raise RuntimeError("generateToken no devolvió un token.")
     return token
 
 
 def refresh_item_tokens(
     gis: GIS,
     item_ids: Iterable[str],
+    new_token: str,
     dry_run: bool = True,
     logs=None,
 ) -> List[Dict[str, Any]]:
     """Actualiza tokens en los JSON de los ítems indicados."""
-    token = connection_token(gis)
+    if not new_token:
+        raise ValueError("new_token es obligatorio.")
     reports = []
 
     for item_id in item_ids:
@@ -114,7 +172,7 @@ def refresh_item_tokens(
         if not isinstance(original, (dict, list)):
             raise ValueError(f"El ítem {item_id} no contiene JSON actualizable.")
         updated_data = copy.deepcopy(original)
-        matches, paths = _replace_mutable(updated_data, token)
+        matches, paths = _replace_mutable(updated_data, new_token)
         updated = False
 
         if logs is not None:
