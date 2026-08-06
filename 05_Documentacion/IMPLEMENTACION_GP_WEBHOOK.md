@@ -1,75 +1,73 @@
-# Publicación GP y activación desde Survey123
+# Publicación GP y activación desde la encuesta de edición Survey123
 
-## Componentes
+## Flujo operativo
 
-- `CatastroConsolidacion.pyt`: toolbox sin parámetros.
-- `consolidar_survey.py`: lógica de atributos, geometría, cotas, `id_unique` y adjuntos.
-- `CONFIG_JSON`: variable interna de la PYT con IDs, filtro, credenciales y logs.
-- `Lib/esrilogs.py`: est?ndar corporativo obligatorio de trazabilidad.
+1. El registro original permanece en la tabla padre con `validacion` distinto de `si`.
+2. El Dashboard abre la encuesta Survey123 de edición sobre ese registro.
+3. El revisor selecciona **Sí** y envía la edición.
+4. Survey123 genera un evento de edición (`editData`; algunos proveedores lo muestran como `updateData`).
+5. El receptor del webhook comprueba que `validacion = 'si'` en el registro editado e invoca el GP Service.
+6. La herramienta vuelve a consultar el servicio Survey, consolida punto o línea y copia adjuntos.
+7. `id_unique` impide volver a cargar una geometría ya consolidada.
 
-La configuración no es un archivo adicional para la PYT. El módulo
-`consolidar_survey.py` sí debe permanecer junto a la toolbox durante la publicación.
-La herramienta procesa todos los padres con `validacion = 'si'` y omite los hijos
-cuyo GlobalID ya existe en `id_unique`.
+El disparador es el webhook de la **encuesta Survey123 de edición** y no debe configurarse sobre la encuesta inicial de captura.
 
-## Configuración y credenciales en ArcGIS Server
+## Componentes de publicación
 
-No se incluyen claves en el código ni se utiliza `client_secret`. La variable
-`CONFIG_JSON` contiene la ruta del archivo seguro de credenciales y el nombre del
-perfil. Formato requerido para el archivo externo:
+La herramienta no recibe parámetros, pero el análisis de ArcGIS Pro debe empaquetar estos tres archivos conservando su ubicación relativa:
+
+- `CatastroConsolidacion.pyt`: entrada GP y `CONFIG_JSON` interno.
+- `consolidar_survey.py`: consolidación, geometrías, cotas, `id_unique` y adjuntos.
+- `Lib/__init__.py` y `Lib/esrilogs.py`: paquete de trazabilidad institucional Esri Chile.
+
+No publicar únicamente una copia aislada de la `.pyt`. Preparar una carpeta con todos los componentes, agregar la toolbox al proyecto desde esa carpeta y revisar el análisis de **Compartir como herramienta web**. Si `consolidar_survey.py` o el paquete `Lib` no aparecen entre las dependencias incorporadas, cancelar la publicación y corregir la carpeta de origen.
+
+## Configuración interna y credenciales
+
+La PYT publicada no busca `credenciales.json`. Antes de publicar, crear una copia local llamada `CatastroConsolidacion.publicacion.pyt` —excluida por `.gitignore`— y completar dentro de `CONFIG_JSON`:
 
 ```json
 {
-  "AGOL": {
+  "arcgis": {
     "url": "https://www.arcgis.com",
     "username": "USUARIO_TECNICO",
-    "password": "CONTRASEÑA"
+    "password": "CONTRASENA_TECNICA"
   }
 }
 ```
 
-El archivo debe quedar fuera de carpetas públicas y ser legible solamente por la
-cuenta de ArcGIS Server. Antes de publicar se debe editar el bloque `CONFIG_JSON`
-dentro de la PYT y verificar las rutas de credenciales y logs desde la cuenta del servicio.
+Completar también los IDs del Survey y del servicio consolidado, el filtro `validacion = 'si'` y la ruta persistente de logs. La copia configurada contiene una contraseña: no debe confirmarse en Git, enviarse por correo ni conservarse en una carpeta compartida. El repositorio mantiene solamente marcadores.
 
-## Logs Esri Chile
+Los notebooks y el ejecutor de Windows son artefactos diferentes y continúan leyendo sus credenciales desde el archivo externo configurado.
 
-No se usa el m?dulo est?ndar `logging`. La PYT crea un `Logfile` usando la secci?n
-`logs` del `CONFIG_JSON`; los errores se registran con `capturaError`. Configure una
-ruta persistente con permiso de escritura para la cuenta de ArcGIS Server. Consulte
-`ManualUsoLogsEsriChile.html` para rotaci?n, retenci?n y estructura del archivo.
+## Publicar el GP Service
 
-## Publicar
+1. Copiar `CatastroConsolidacion.pyt`, `consolidar_survey.py` y `Lib/esrilogs.py` a una carpeta local de preparación.
+2. Completar `CONFIG_JSON` solamente en esa copia de la PYT.
+3. Agregar la toolbox a ArcGIS Pro y ejecutar **Consolidar encuestas validadas**.
+4. Confirmar que procesa únicamente padres con `validacion = 'si'` y que una segunda ejecución no duplica datos.
+5. Compartir el resultado como herramienta web o servicio de geoprocesamiento asíncrono.
+6. Revisar los mensajes del analizador y confirmar que los dos módulos Python fueron empaquetados.
+7. Probar `submitJob`, esperar `esriJobSucceeded` y revisar el log Esri Chile.
 
-1. Agregar `CatastroConsolidacion.pyt` a un proyecto de ArcGIS Pro.
-2. Ejecutar **Consolidar encuestas validadas** y revisar los mensajes.
-3. Compartir el resultado como **Web Tool / Geoprocessing Service**.
-4. Elegir ejecución asíncrona y restringir el servicio a la cuenta técnica.
-5. Confirmar en el servidor que `consolidar_survey.py` quedó junto a la toolbox. Si
-   el proceso de publicación no lo copia, desplegarlo en una carpeta
-   accesible por la cuenta de ArcGIS Server y publicar desde esa ubicación.
-6. Probar el endpoint `submitJob` y revisar el estado hasta `esriJobSucceeded`.
+## Configurar el webhook Survey123
 
-## Webhook
+En la encuesta de edición:
 
-El webhook de Survey123 entrega un JSON de evento, mientras que un GP Service
-protegido requiere autenticación y una llamada REST a `submitJob`. Se recomienda un
-intermediario (Azure Function, Logic App, Power Automate o servicio equivalente):
+1. Abrir **Survey123 website > Configuración > Webhooks**.
+2. Crear y activar un webhook para el evento de edición de una respuesta existente.
+3. Usar la URL del receptor institucional que invocará el GP Service.
+4. En el receptor, aceptar únicamente el evento de edición correspondiente al formulario configurado.
+5. Leer el atributo `validacion` del registro editado y continuar solo cuando su valor normalizado sea `si`.
+6. Invocar `submitJob` sin parámetros de herramienta, registrar el `jobId` y controlar el resultado.
+7. Responder correctamente a Survey123 y aplicar reintentos sin riesgo: la carga es idempotente por `id_unique`.
 
-1. Recibir el webhook de Survey123.
-2. Responder HTTP 200 rápidamente.
-3. Verificar que el evento sea una edición relevante.
-4. Obtener una credencial segura para ArcGIS Enterprise.
-5. Ejecutar `POST <GPServer>/ConsolidarEncuestasValidadas/submitJob` con `f=json`.
-6. Registrar el `jobId` y consultar su estado para auditoría/reintentos.
+El GP Service no consume directamente el JSON del webhook. El receptor institucional adapta el POST de Survey123 a la llamada REST autenticada de `submitJob`.
 
-La toolbox no necesita recibir el payload: cada llamada vuelve a consultar el
-servicio y `id_unique` hace que el proceso sea idempotente.
+## Prueba de aceptación
 
-## Momento correcto del disparo
-
-Una encuesta nueva nace con `validacion = 'No validado'`; el webhook de creación
-ejecutará la GP, pero no cargará ese registro. Para consolidarlo debe existir un
-segundo disparo cuando el revisor cambie el valor a `si`. Si la aplicación de
-revisión no emite webhook, programe además el GP Service cada pocos minutos. El
-barrido programado es seguro porque los ya cargados se omiten mediante `id_unique`.
+- Enviar una captura nueva: no debe consolidarse mientras no esté validada.
+- Abrir desde el Dashboard la encuesta de edición, seleccionar **Sí** y enviarla.
+- Confirmar que el webhook registra un evento de edición y que el atributo enviado es `validacion = 'si'`.
+- Confirmar que el GP finaliza correctamente y copia atributos, geometría y adjuntos.
+- Reenviar o reintentar el evento: no debe crear duplicados porque el GlobalID hijo ya existe en `id_unique`.

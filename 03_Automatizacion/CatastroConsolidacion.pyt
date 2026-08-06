@@ -12,22 +12,25 @@ from pathlib import Path
 
 import arcpy
 from arcgis.gis import GIS
-from Lib.esrilogs import Logfile, capturaError
 TOOLBOX_DIR = Path(__file__).resolve().parent
 if str(TOOLBOX_DIR) not in sys.path:
     sys.path.insert(0, str(TOOLBOX_DIR))
 
+from Lib.esrilogs import Logfile, capturaError  # noqa: E402
 from consolidar_survey import run_consolidation  # noqa: E402
 
 
 # CONFIGURACIÓN EMBEBIDA PARA PUBLICACIÓN.
 # El técnico debe editar únicamente este bloque antes de publicar la PYT.
-# La contraseña permanece en un archivo externo protegido, nunca en la toolbox.
+# Para el GP publicado no se depende de un archivo externo de credenciales.
+# Complete usuario y contraseña inmediatamente antes de publicar. Distribuya en
+# Git solamente esta plantilla con marcadores, nunca una copia configurada.
 CONFIG_JSON = r'''
 {
   "arcgis": {
-    "credentials_file": "C:/CIREN/Seguridad/credenciales.json",
-    "credentials_profile": "AGOL"
+    "url": "https://www.arcgis.com",
+    "username": "<USUARIO_TECNICO>",
+    "password": "<CONTRASENA_TECNICA>"
   },
   "items": {
     "survey_feature_service": "<ITEM_ID_SERVICIO_SURVEY>",
@@ -68,22 +71,14 @@ def load_embedded_config():
 
 def connect_gis(config):
     arcgis_config = config["arcgis"]
-    credentials_path = Path(arcgis_config["credentials_file"])
-    if not credentials_path.exists():
-        raise RuntimeError(
-            "No existe el archivo de credenciales configurado: {}".format(
-                credentials_path
-            )
-        )
-    profiles = json.loads(credentials_path.read_text(encoding="utf-8"))
-    profile_name = arcgis_config.get("credentials_profile", "AGOL")
-    if profile_name not in profiles:
-        raise RuntimeError("No existe el perfil de credenciales {}.".format(profile_name))
-    credentials = profiles[profile_name]
     for key in ("url", "username", "password"):
-        if not credentials.get(key):
+        if not arcgis_config.get(key):
             raise RuntimeError("La credencial no contiene {}.".format(key))
-    return GIS(credentials["url"], credentials["username"], credentials["password"])
+    return GIS(
+        arcgis_config["url"],
+        arcgis_config["username"],
+        arcgis_config["password"],
+    )
 
 
 def report_messages(report, logs):

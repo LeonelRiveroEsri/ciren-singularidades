@@ -13,6 +13,7 @@ Old/
 credenciales.json
 credentials.json
 *.secrets.json
+*.publicacion.pyt
 .env
 .env.*
 
@@ -21,4 +22,3 @@ credentials.json
 Thumbs.db
 .vscode/
 .idea/
-

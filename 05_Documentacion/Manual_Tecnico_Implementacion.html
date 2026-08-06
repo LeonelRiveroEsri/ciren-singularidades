@@ -324,11 +324,11 @@ Por cada hijo nuevo:
       <div class="flow">
         <div class="node"><b>Revisor guarda “Sí”</b>La tabla padre persiste <code>validacion='si'</code>.</div>
         <div class="arrow">→</div>
-        <div class="node"><b>Intermediario</b>Webhook/Logic App/Azure Function solicita <code>submitJob</code>.</div>
+        <div class="node"><b>Webhook Survey123 de edición</b>El receptor valida <code>editData</code> y <code>validacion='si'</code>, y solicita <code>submitJob</code>.</div>
         <div class="arrow">→</div>
         <div class="node"><b>GP Service</b>Inserta únicamente GlobalID hijo ausente en <code>id_unique</code>.</div>
       </div>
-      <p>El webhook inicial de una encuesta nueva puede ejecutar la GP, pero no cargará ese registro porque nace como <code>No validado</code>. El evento útil es la edición que cambia el estado a <code>si</code>. Si la encuesta de edición o el Dashboard no producen un webhook confiable, se debe ejecutar el GP cada pocos minutos como respaldo.</p>
+      <p>El webhook debe configurarse en la encuesta Survey123 de edición abierta desde el Dashboard, no en la encuesta inicial de captura. Al enviar la edición, Survey123 genera el evento <code>editData</code>; el receptor continúa únicamente cuando el atributo persistido es <code>validacion='si'</code>. El receptor institucional adapta el POST de Survey123 a la llamada autenticada <code>submitJob</code>.</p>
       <table>
         <thead><tr><th>Automatización</th><th>Frecuencia</th><th>Resultado esperado</th></tr></thead>
         <tbody>
@@ -346,7 +346,7 @@ Por cada hijo nuevo:
       <table>
         <thead><tr><th>Sección JSON</th><th>Contenido</th></tr></thead>
         <tbody>
-          <tr><td><code>arcgis</code></td><td>Ruta del archivo seguro de credenciales y nombre del perfil.</td></tr>
+          <tr><td><code>arcgis</code></td><td>En notebooks: ruta y perfil externo. En la PYT: URL, usuario y contraseña embebidos en la copia de publicación.</td></tr>
           <tr><td><code>items</code></td><td>IDs de Survey, destino, Dashboard, Web Maps y Form de edición.</td></tr>
           <tr><td><code>consolidation</code></td><td>Filtro de aprobación, <code>id_unique</code>, adjuntos y política de actualización.</td></tr>
           <tr><td><code>arcade_tokens</code></td><td>Ítems con Arcade, coincidencias Regex esperadas y habilitación del notebook.</td></tr>
@@ -354,15 +354,15 @@ Por cada hijo nuevo:
         </tbody>
       </table>
       <h3>Credenciales por usuario y contraseña</h3>
-      <p>No se usa OAuth <code>client_id/client_secret</code>. La ruta configurada apunta a un archivo externo con esta forma:</p>
+      <p>No se usa OAuth <code>client_id/client_secret</code>. Los notebooks y el Scheduler usan un archivo externo. La PYT no puede depender de ese archivo al publicarse, por lo que su <code>CONFIG_JSON</code> contiene:</p>
       <pre>{
-  "AGOL": {
+  "arcgis": {
     "url": "&lt;URL_PORTAL_DESTINO&gt;",
     "username": "&lt;USUARIO_TECNICO&gt;",
-    "password": "CONTRASEÑA"
+    "password": "&lt;CONTRASENA_TECNICA&gt;"
   }
 }</pre>
-      <p>Se entrega <code>credenciales.example.json</code> como plantilla sin secretos. El archivo real debe:</p>
+      <p>La copia configurada de la PYT contiene un secreto y no debe subirse a Git ni distribuirse. Para notebooks y tareas se entrega <code>credenciales.example.json</code>; el archivo real debe:</p>
       <ul>
         <li>permanecer fuera del repositorio y de carpetas web;</li>
         <li>tener permisos de lectura solo para el técnico y la cuenta de ArcGIS Server/planificador;</li>
@@ -383,7 +383,7 @@ Por cada hijo nuevo:
           <tr><td><code>001.ipynb</code> y <code>Actualizar_token_Arcade_CIREN.ipynb</code></td><td>Pruebas, diagnóstico y operación manual.</td></tr>
         </tbody>
       </table>
-      <div class="callout warn"><strong>Publicación de la PYT:</strong> antes de compartirla, editar únicamente <code>CONFIG_JSON</code> dentro de <code>CatastroConsolidacion.pyt</code>. La ruta <code>arcgis.credentials_file</code> debe existir también en ArcGIS Server y ser legible por la cuenta del servicio. No incorporar la contraseña dentro de la PYT.</div>
+      <div class="callout warn"><strong>Publicación de la PYT:</strong> crear <code>CatastroConsolidacion.publicacion.pyt</code> —excluida por <code>.gitignore</code>—, completar <code>CONFIG_JSON</code> y publicar desde una carpeta que contenga también <code>consolidar_survey.py</code>, <code>Lib/__init__.py</code> y <code>Lib/esrilogs.py</code>. Revisar que el analizador de ArcGIS Pro incorpore los módulos. La PYT publicada no busca un archivo externo de credenciales.</div>
     </section>
 
     <section id="implementacion">
@@ -401,8 +401,8 @@ Por cada hijo nuevo:
         <li><strong>Publicar:</strong> cambiar temporalmente a <code>EXECUTE_CHANGES = True</code> y ejecutar la actualización.</li>
         <li><strong>Verificar:</strong> comparar conteos, geometrías, atributos, <code>id_unique</code> y cantidad de adjuntos.</li>
         <li><strong>Configurar popups:</strong> Arcade relacional en Survey; campos y adjuntos directos en capas consolidadas.</li>
-        <li><strong>Publicar GP:</strong> desplegar juntos <code>CatastroConsolidacion.pyt</code>, <code>consolidar_survey.py</code> y la carpeta <code>Lib</code>, con credenciales y ruta de logs accesibles por ArcGIS Server.</li>
-        <li><strong>Conectar evento:</strong> usar un intermediario para autenticar y ejecutar <code>submitJob</code> cuando la edición quede aprobada.</li>
+        <li><strong>Publicar GP:</strong> preparar una copia no versionada de <code>CatastroConsolidacion.pyt</code> con credenciales internas y desplegarla junto a <code>consolidar_survey.py</code> y <code>Lib/esrilogs.py</code>, verificando las dependencias en el análisis.</li>
+        <li><strong>Conectar evento:</strong> configurar el webhook en la encuesta Survey123 de edición; aceptar <code>editData</code>, comprobar <code>validacion='si'</code> e invocar <code>submitJob</code>.</li>
         <li><strong>Agendar tokens:</strong> registrar <code>ActualizarTokensScheduler.py</code> con <code>propy.bat</code> en Windows Task Scheduler, ejecutarlo diariamente y verificar <code>expected_matches</code>, el código de salida y el log.</li>
       </ol>
     </section>

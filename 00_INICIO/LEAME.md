@@ -11,7 +11,7 @@ Este paquete permite implementar la solución en una organización ArcGIS nueva.
 5. Crear Web Maps, Form de edición y Dashboard; registrar sus IDs.
 6. Configurar los Arcade de `04_Popups_Arcade`.
 7. Completar `03_Automatizacion/configuracion_ciren.json`.
-8. Replicar los mismos valores dentro de `CONFIG_JSON` en `CatastroConsolidacion.pyt`.
+8. Crear una copia local no versionada de `CatastroConsolidacion.pyt` y completar su `CONFIG_JSON`, incluidas las credenciales técnicas requeridas por el GP publicado.
 9. Ejecutar los notebooks primero en simulación.
 10. Publicar la PYT como GP Service y configurar webhook/reconciliación.
 11. Agendar la renovación de tokens Arcade siguiendo `03_Automatizacion/WINDOWS_TASK_SCHEDULER.md`.
@@ -26,7 +26,8 @@ Este paquete permite implementar la solución en una organización ArcGIS nueva.
 
 ## Seguridad
 
-- Crear el archivo real de credenciales fuera del entregable.
+- Para notebooks y Scheduler, crear el archivo real de credenciales fuera del repositorio.
+- Para la PYT, completar las credenciales únicamente en la copia de publicación; nunca confirmar esa copia en Git.
 - No incluir contraseñas ni `client_secret` en PYT, notebooks o Arcade.
 - No ejecutar mientras existan marcadores `<...>` en la configuración.
 - Proteger las rutas de credenciales y logs para la cuenta técnica/ArcGIS Server.

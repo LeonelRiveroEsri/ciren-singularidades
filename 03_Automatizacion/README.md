@@ -5,9 +5,9 @@ Todos los archivos de esta carpeta deben conservar su ubicación relativa. `Lib/
 ## Configuración
 
 - Notebooks y tareas: editar `configuracion_ciren.json`.
-- GP Service: editar el bloque `CONFIG_JSON` dentro de `CatastroConsolidacion.pyt`.
+- GP Service: editar el bloque `CONFIG_JSON` dentro de `CatastroConsolidacion.pyt`, incluidos URL, usuario y contraseña de la cuenta técnica.
 - Ambos deben contener los mismos IDs, filtro y rutas.
-- Usar `credenciales.example.json` solo como plantilla; no escribir la clave real dentro del entregable.
+- Usar `credenciales.example.json` solo para notebooks y tareas Windows. La PYT publicada no lee ese archivo.
 
 ## Pruebas
 
@@ -26,10 +26,12 @@ El ejecutor realiza siempre una simulación previa y cancela sin escribir si la 
 
 ## Publicación PYT
 
-Publicar juntos:
+Publicar desde una carpeta de preparación que contenga juntos:
 
 - `CatastroConsolidacion.pyt`
 - `consolidar_survey.py`
 - `Lib/esrilogs.py`
 
-La herramienta no recibe parámetros. La cuenta de ArcGIS Server debe leer las credenciales y escribir en la ruta de logs configurada.
+La herramienta no recibe parámetros. La cuenta de ArcGIS Server debe poder escribir en la ruta de logs configurada.
+
+Crear la copia como `CatastroConsolidacion.publicacion.pyt`; ese patrón está excluido por `.gitignore`. Su contraseña queda dentro de `CONFIG_JSON`: no distribuirla como fuente. ArcGIS Pro debe incluir `consolidar_survey.py`, `Lib/__init__.py` y `Lib/esrilogs.py` como dependencias al crear la definición del servicio; revisar el análisis de publicación y el contenido preparado antes de cargarlo en el servidor.

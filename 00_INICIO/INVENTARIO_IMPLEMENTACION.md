@@ -18,7 +18,7 @@ Complete esta matriz a medida que publica. Los valores deben copiarse luego a `c
 | Form Survey de edición | | | | |
 | Dashboard de validación | | | | |
 | GP Service consolidación | | | | |
-| Endpoint intermediario/webhook | | | | |
+| Webhook de la encuesta Survey123 de edición | | | | |
 | Cuenta técnica | | | | |
 | Ruta segura de credenciales | | | | |
 | Ruta persistente de logs | | | | |
@@ -37,5 +37,6 @@ Complete esta matriz a medida que publica. Los valores deben copiarse luego a `c
 - [ ] `ActualizarTokensScheduler.py` finaliza con código 0 y deja log institucional.
 - [ ] Task Scheduler ejecuta con la cuenta técnica aunque no haya sesión abierta.
 - [ ] GP Service ejecuta sin parámetros.
-- [ ] Webhook o reconciliación invoca el GP.
+- [ ] El webhook Survey123 de edición recibe `editData` y solo invoca el GP cuando `validacion = 'si'`.
+- [ ] El análisis de publicación incluye `consolidar_survey.py` y `Lib/esrilogs.py`.
 - [ ] Logs Esri Chile registran inicio, cierre, duración y errores.
