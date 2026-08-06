@@ -1,6 +1,6 @@
 {
-  "AGOL": {
-    "url": "https://www.arcgis.com",
+  "PORTAL": {
+    "url": "https://portal.organizacion.cl/portal",
     "username": "USUARIO_TECNICO_CIREN",
     "password": "REEMPLAZAR_EN_ARCHIVO_SEGURO"
   }

@@ -333,10 +333,10 @@ Por cada hijo nuevo:
         <thead><tr><th>Automatización</th><th>Frecuencia</th><th>Resultado esperado</th></tr></thead>
         <tbody>
           <tr><td>GP por edición validada</td><td>Por evento</td><td>Publicación rápida del registro aprobado.</td></tr>
-          <tr><td>GP de reconciliación</td><td>Cada 5–15 minutos</td><td>Recupera eventos perdidos; <code>id_unique</code> evita duplicados.</td></tr>
           <tr><td>Renovación token Arcade</td><td>Diaria o antes del vencimiento</td><td>Fotografías visibles en popups del Dashboard.</td></tr>
         </tbody>
       </table>
+      <div class="callout ok"><strong>Regla operativa:</strong> la GP se ejecuta exclusivamente por el webhook de la encuesta Survey123 de edición. No se agenda la consolidación. El único proceso programado es la renovación de tokens Arcade.</div>
       <div class="callout"><strong>Separación recomendada:</strong> consolidación y renovación de tokens son trabajos distintos. Un fallo del popup no debe impedir consolidar datos, y una encuesta nueva no debe provocar rotaciones innecesarias del token.</div>
     </section>
 
@@ -350,7 +350,7 @@ Por cada hijo nuevo:
           <tr><td><code>items</code></td><td>IDs de Survey, destino, Dashboard, Web Maps y Form de edición.</td></tr>
           <tr><td><code>consolidation</code></td><td>Filtro de aprobación, <code>id_unique</code>, adjuntos y política de actualización.</td></tr>
           <tr><td><code>arcade_tokens</code></td><td>Ítems con Arcade, coincidencias Regex esperadas y habilitación del notebook.</td></tr>
-          <tr><td><code>automation</code></td><td>Frecuencias recomendadas para reconciliación GP y tokens.</td></tr>
+          <tr><td><code>automation</code></td><td>Horario recomendado para la renovación programada de tokens.</td></tr>
         </tbody>
       </table>
       <h3>Credenciales por usuario y contraseña</h3>

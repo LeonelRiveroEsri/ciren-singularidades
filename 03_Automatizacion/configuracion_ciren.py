@@ -46,7 +46,7 @@ def load_credentials(config: Dict[str, Any]) -> Dict[str, str]:
             f"No existe el archivo de credenciales: {credentials_path}"
         )
     profiles = json.loads(credentials_path.read_text(encoding="utf-8"))
-    profile_name = arcgis_config.get("credentials_profile", "AGOL")
+    profile_name = arcgis_config.get("credentials_profile", "PORTAL")
     if profile_name not in profiles:
         raise KeyError(f"No existe el perfil de credenciales {profile_name}.")
     credentials = profiles[profile_name]

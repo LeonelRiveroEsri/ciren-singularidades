@@ -1,7 +1,7 @@
 {
   "arcgis": {
     "credentials_file": "C:/CIREN/Seguridad/credenciales.json",
-    "credentials_profile": "AGOL"
+    "credentials_profile": "PORTAL"
   },
   "items": {
     "survey_feature_service": "<ITEM_ID_SERVICIO_SURVEY>",
@@ -27,7 +27,6 @@
     "notebook_execute_changes": false
   },
   "automation": {
-    "gp_reconciliation_minutes": 10,
     "token_refresh_hour": "02:00"
   },
   "logs": {

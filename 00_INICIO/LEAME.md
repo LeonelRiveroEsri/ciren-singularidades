@@ -13,7 +13,7 @@ Este paquete permite implementar la solución en una organización ArcGIS nueva.
 7. Completar `03_Automatizacion/configuracion_ciren.json`.
 8. Crear una copia local no versionada de `CatastroConsolidacion.pyt` y completar su `CONFIG_JSON`, incluidas las credenciales técnicas requeridas por el GP publicado.
 9. Ejecutar los notebooks primero en simulación.
-10. Publicar la PYT como GP Service y configurar webhook/reconciliación.
+10. Publicar la PYT como GP Service y conectarla al webhook de la encuesta Survey123 de edición.
 11. Agendar la renovación de tokens Arcade siguiendo `03_Automatizacion/WINDOWS_TASK_SCHEDULER.md`.
 
 ## Estructura

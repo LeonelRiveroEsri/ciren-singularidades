@@ -29,7 +29,7 @@ La PYT publicada no busca `credenciales.json`. Antes de publicar, crear una copi
 ```json
 {
   "arcgis": {
-    "url": "https://www.arcgis.com",
+    "url": "https://portal.organizacion.cl/portal",
     "username": "USUARIO_TECNICO",
     "password": "CONTRASENA_TECNICA"
   }
@@ -63,6 +63,8 @@ En la encuesta de edición:
 7. Responder correctamente a Survey123 y aplicar reintentos sin riesgo: la carga es idempotente por `id_unique`.
 
 El GP Service no consume directamente el JSON del webhook. El receptor institucional adapta el POST de Survey123 a la llamada REST autenticada de `submitJob`.
+
+Cada consolidación se origina exclusivamente en el webhook de la encuesta de edición. La GP no tiene una tarea programada. El único proceso agendado de esta solución es la renovación de tokens Arcade mediante Windows Task Scheduler.
 
 ## Prueba de aceptación
 

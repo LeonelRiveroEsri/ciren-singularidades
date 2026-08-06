@@ -28,7 +28,7 @@ from consolidar_survey import run_consolidation  # noqa: E402
 CONFIG_JSON = r'''
 {
   "arcgis": {
-    "url": "https://www.arcgis.com",
+    "url": "<URL_PORTAL_ENTERPRISE>",
     "username": "<USUARIO_TECNICO>",
     "password": "<CONTRASENA_TECNICA>"
   },
