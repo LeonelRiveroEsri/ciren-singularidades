@@ -257,7 +257,6 @@ if (pointRelationship == null || lineRelationship == null) {
     fields: [
       { name: "error", alias: "Error de relación", type: "esriFieldTypeString" },
     ],
-    spatialReference: { wkid: 4326 },
     geometryType: "esriGeometryPolygon",
     features: [
       {
@@ -332,7 +331,6 @@ Push(outputFields, {
 
 var output = {
   fields: outputFields,
-  spatialReference: { wkid: 4326 },
   geometryType: "esriGeometryPolygon",
   features: [],
 };
@@ -537,6 +535,6 @@ for (var parent in parents) {
   });
 }
 
-// La firma serializada es compatible desde Arcade 1.5. La definición incluye
-// el spatialReference obligatorio del FeatureSet y de cada geometría.
+// Mantener la misma estructura probada de AOIPadresOk.js. Cada geometría
+// conserva su referencia espacial; no se fuerza una distinta en la cabecera.
 return FeatureSet(Text(output));

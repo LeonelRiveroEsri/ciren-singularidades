@@ -263,7 +263,6 @@ if (pointRelationship == null || lineRelationship == null) {
     fields: [
       { name: "error", alias: "Error de relación", type: "esriFieldTypeString" },
     ],
-    spatialReference: { wkid: 4326 },
     geometryType: "esriGeometryPolygon",
     features: [
       {
@@ -338,7 +337,6 @@ Push(outputFields, {
 
 var output = {
   fields: outputFields,
-  spatialReference: { wkid: 4326 },
   geometryType: "esriGeometryPolygon",
   features: [],
 };
@@ -554,7 +552,6 @@ if (diagnosticMode == 2) {
     fields: [
       { name: "debug_id", alias: "Diagnóstico", type: "esriFieldTypeInteger" },
     ],
-    spatialReference: { wkid: 4326 },
     geometryType: "esriGeometryPolygon",
     features: [],
   };
@@ -573,7 +570,6 @@ if (diagnosticMode == 2) {
 if (diagnosticMode == 3) {
   var limitedOutput = {
     fields: [],
-    spatialReference: { wkid: 4326 },
     geometryType: "esriGeometryPolygon",
     features: [],
   };
