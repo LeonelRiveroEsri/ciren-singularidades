@@ -237,6 +237,8 @@
         <div class="arrow">→</div>
         <div class="node"><b>Encuesta de edición</b>El revisor confirma <em>Sí</em> o <em>No</em> después de revisar los antecedentes.</div>
       </div>
+      <h3>AOI virtual por registro padre</h3>
+      <p><code>06_Dashboard_Arcade/AOIPadresSurvey.js</code> permite representar cada fila de la tabla padre como una geometría AOI sin alterar el servicio Survey. La expresión relaciona puntos y líneas mediante <code>parentglobalid</code>, aplica buffers geodésicos, une los polígonos y calcula su envolvente convexa. Devuelve un FeatureSet poligonal utilizable como fuente de datos del Dashboard y omite padres sin geometría relacionada.</p>
       <h3>Regla de aprobación</h3>
       <p>La opción visible “Sí” debe persistir el código exacto <code>si</code> en <code>validacion</code>. El notebook y la herramienta GP consultan ese código, no la etiqueta mostrada. Al guardar, el padre queda elegible para consolidación.</p>
       <div class="callout warn"><strong>Prueba obligatoria:</strong> editar un registro de prueba y consultar directamente la tabla para confirmar que el valor almacenado sea exactamente <code>si</code>. Una etiqueta “Sí” puede tener un código interno distinto.</div>

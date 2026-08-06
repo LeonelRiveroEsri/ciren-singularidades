@@ -15,5 +15,6 @@ Solución técnica para captura con Survey123, validación, consolidación de ge
 - `03_Automatizacion`: notebooks, Python Toolbox, módulos y tarea para Windows Task Scheduler.
 - `04_Popups_Arcade`: popups profesionales, versiones simples y galería de fotografías separada.
 - `05_Documentacion`: manual técnico, publicación GP/webhook y uso de logs Esri Chile.
+- `06_Dashboard_Arcade`: expresión de datos para construir AOI poligonales por padre Survey.
 
 El repositorio contiene únicamente plantillas de configuración. Las credenciales deben almacenarse fuera del repositorio y nunca incorporarse a commits.
