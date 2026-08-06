@@ -544,14 +544,9 @@ for (var parent in parents) {
 }
 
 if (diagnosticMode == 1) {
-  return FeatureSet(Text({
-    fields: [
-      { name: "debug_id", alias: "Diagnóstico", type: "esriFieldTypeInteger" },
-    ],
-    spatialReference: { wkid: 4326 },
-    geometryType: "esriGeometryPolygon",
-    features: [],
-  }));
+  return FeatureSet(
+    '{"fields":[{"name":"mensaje","alias":"Resultado","type":"esriFieldTypeString"}],"geometryType":"","features":[{"attributes":{"mensaje":"FEATURESET_OK"}}]}'
+  );
 }
 
 if (diagnosticMode == 2) {
