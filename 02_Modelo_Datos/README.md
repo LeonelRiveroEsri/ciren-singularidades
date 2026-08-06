@@ -1,12 +1,6 @@
 # Modelo de datos consolidado
 
-`ShemaSDE.gdb.zip` contiene la geodatabase de archivos modelo generada desde:
-
-```text
-D:\Developer\CIREN\Dataset\ShemaSDE.gdb
-```
-
-La ruta anterior identifica la fuente de desarrollo y no debe replicarse en producción.
+`ShemaSDE.gdb.zip` contiene la geodatabase de archivos modelo regenerada desde la fuente de desarrollo antes de la limpieza del proyecto. El ZIP versionado es desde ahora la fuente transferible del esquema; ninguna ruta local de desarrollo debe replicarse en producción.
 
 ## Uso en ArcGIS Enterprise
 

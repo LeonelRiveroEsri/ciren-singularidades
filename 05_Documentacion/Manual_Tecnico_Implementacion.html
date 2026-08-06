@@ -278,11 +278,11 @@ Por cada hijo nuevo:
       <table>
         <thead><tr><th>Contexto</th><th>Configuración recomendada</th></tr></thead>
         <tbody>
-          <tr><td>Capas hijas del Survey</td><td>Usar <code>arcadePopupProfesionalPuntos.js</code> o <code>arcadePopupProfesionalLineas.js</code>. Aquí sí existen relaciones y los adjuntos permanecen en el padre.</td></tr>
+          <tr><td>Capas hijas del Survey</td><td>Usar la ficha HTML profesional, o combinar <code>arcadePopupSimplePuntos.js</code>/<code>arcadePopupSimpleLineas.js</code> con <code>arcadeFotosSeparadas.js</code>. Aquí sí existen relaciones y los adjuntos permanecen en el padre.</td></tr>
           <tr><td>Capas consolidadas</td><td>Configurar directamente campos y adjuntos nativos del popup. No usar Arcade relacional: estas capas ya contienen toda la ficha y no tienen relaciones.</td></tr>
         </tbody>
       </table>
-      <div class="callout warn"><strong>Seguridad:</strong> este diseño inserta un token temporal en Arcade para resolver fotografías. El token puede ser inspeccionado por usuarios con acceso al ítem; limite el acceso, use HTTPS, vincúlelo mediante <code>referer</code> y nunca registre su valor. El archivo histórico <code>arcadefotos.js</code> debe considerarse obsoleto.</div>
+      <div class="callout warn"><strong>Seguridad:</strong> este diseño inserta un token temporal en Arcade para resolver fotografías. El token puede ser inspeccionado por usuarios con acceso al ítem; limite el acceso, use HTTPS, vincúlelo mediante <code>referer</code> y nunca registre su valor. Use la versión saneada <code>arcadeFotosSeparadas.js</code>, que no contiene URL ni token del desarrollo.</div>
     </section>
 
     <section id="tokens">
