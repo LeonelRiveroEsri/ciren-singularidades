@@ -17,10 +17,9 @@ Los notebooks y tareas Windows deben conservar su ubicación relativa respecto d
 
 ## Pruebas
 
-1. Mantener `notebook_execute_changes: false`.
-2. Ejecutar `001.ipynb` y revisar el reporte de simulación.
-3. Ejecutar `Actualizar_token_Arcade_CIREN.ipynb` y confirmar `expected_matches`.
-4. Recién después habilitar cambios en el ambiente destino.
+1. Para consolidación, mantener `consolidation.notebook_execute_changes: false` hasta revisar la simulación de `001.ipynb`.
+2. Ejecutar `Actualizar_token_Arcade_CIREN.ipynb`: primero simula y exige `expected_matches`; si coincide, la última celda actualiza el token.
+3. La frecuencia de producción se configura exclusivamente en Windows Task Scheduler, no en el JSON.
 
 ## Windows Task Scheduler
 
@@ -30,6 +29,7 @@ Los notebooks y tareas Windows deben conservar su ubicación relativa respecto d
 
 El ejecutor realiza siempre una simulación previa y cancela sin escribir si la cantidad encontrada difiere de `arcade_tokens.expected_matches`.
 El token se obtiene con un POST HTTPS a `<portal>/sharing/rest/generateToken`, usando `client=referer`; no se reutiliza el token interno de `GIS._con`.
+La sección `automation` y el interruptor `arcade_tokens.notebook_execute_changes` no existen: el Scheduler controla el calendario y el notebook operativo actualiza después de superar su validación.
 
 ## Publicación PYT
 
