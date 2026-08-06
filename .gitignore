@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# ArcGIS y archivos temporales
+*.lock
+*.sr.lock
+Logs/
+Old/
+
+# Credenciales locales (la plantilla sí se versiona)
+credenciales.json
+credentials.json
+*.secrets.json
+.env
+.env.*
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+

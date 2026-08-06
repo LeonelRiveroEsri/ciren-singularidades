@@ -1,0 +1,442 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manual técnico de implementación · Catastro de singularidades</title>
+  <style>
+    :root {
+      --ink:#2b2b2b; --muted:#666; --blue:#007ac2; --blue2:#00619b;
+      --sky:#e8f3fa; --line:#d8d8d8; --paper:#fff; --soft:#f4f4f4;
+      --green:#237a57; --green-bg:#e9f6ef; --amber:#a56100; --amber-bg:#fff5df;
+      --red:#a33a32; --red-bg:#fff0ee;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:#f2f2f2; color:var(--ink); font:15px/1.55 "Avenir Next","Segoe UI",Arial,sans-serif; }
+    .brandbar { background:#fff; border-top:5px solid #f89927; border-bottom:1px solid #ddd; }
+    .brand-inner { max-width:1120px; height:70px; margin:auto; padding:13px 28px; display:flex; align-items:center; justify-content:space-between; }
+    .brand-logo { display:block; width:190px; max-height:44px; }
+    .brand-label { color:#555; font-size:13px; letter-spacing:.04em; }
+    .hero { background:linear-gradient(115deg,#262626,#3d3d3d); color:white; padding:45px 28px; border-bottom:5px solid #007ac2; }
+    .hero-inner,.page { max-width:1120px; margin:auto; }
+    .eyebrow { letter-spacing:.12em; text-transform:uppercase; font-size:12px; font-weight:700; color:#f6a800; }
+    h1 { margin:8px 0 10px; font-size:36px; line-height:1.12; }
+    .lead { max-width:850px; margin:0; color:#eee; font-size:17px; }
+    .meta { display:flex; flex-wrap:wrap; gap:10px; margin-top:23px; }
+    .meta span { padding:6px 10px; border:1px solid #ffffff55; border-radius:20px; font-size:12px; }
+    .page { background:var(--paper); margin-top:24px; margin-bottom:40px; padding:34px; border-radius:3px; box-shadow:0 4px 18px #00000016; }
+    nav { padding:14px 18px; background:var(--soft); border:1px solid var(--line); border-radius:8px; }
+    nav a { display:inline-block; color:var(--blue); text-decoration:none; font-weight:600; margin:4px 18px 4px 0; }
+    section { padding-top:28px; }
+    h2 { margin:0 0 14px; color:var(--blue); font-size:25px; border-bottom:2px solid var(--sky); padding-bottom:8px; }
+    h3 { margin:22px 0 8px; font-size:18px; }
+    p { margin:8px 0 14px; }
+    code { color:#184d60; background:#edf4f6; padding:2px 5px; border-radius:4px; }
+    pre { white-space:pre-wrap; padding:15px; color:#e5f4f7; background:#173844; border-radius:7px; overflow:auto; }
+    .cards { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .card { border:1px solid var(--line); border-radius:8px; padding:17px; background:#fff; }
+    .card strong { display:block; color:var(--blue); font-size:17px; margin-bottom:4px; }
+    .number { display:inline-grid; place-items:center; width:28px; height:28px; border-radius:50%; color:white; background:var(--blue2); font-weight:700; margin-bottom:8px; }
+    .flow { display:grid; grid-template-columns:1fr 44px 1fr 44px 1fr; align-items:stretch; margin:20px 0; }
+    .node { border:1px solid var(--line); border-top:5px solid var(--blue2); border-radius:8px; padding:16px; background:white; }
+    .node b { display:block; font-size:16px; color:var(--blue); }
+    .arrow { display:grid; place-items:center; color:var(--blue2); font-size:27px; font-weight:bold; }
+    .branch { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:15px 0; }
+    .branch .node { background:var(--soft); }
+    table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:14px; }
+    th { text-align:left; background:#3b3b3b; color:white; padding:9px 11px; border-top:3px solid var(--blue); }
+    td { padding:9px 11px; border-bottom:1px solid var(--line); vertical-align:top; }
+    tbody tr:nth-child(even) { background:var(--soft); }
+    .callout { border-left:5px solid var(--blue2); background:var(--sky); padding:13px 16px; margin:16px 0; border-radius:0 7px 7px 0; }
+    .ok { border-color:var(--green); background:var(--green-bg); }
+    .warn { border-color:var(--amber); background:var(--amber-bg); }
+    .risk { border-color:var(--red); background:var(--red-bg); }
+    .tag { display:inline-block; border-radius:14px; padding:2px 8px; font-size:12px; font-weight:700; }
+    .tag.green { color:var(--green); background:var(--green-bg); }
+    .tag.amber { color:var(--amber); background:var(--amber-bg); }
+    .checklist { list-style:none; padding:0; }
+    .checklist li { position:relative; padding:7px 0 7px 30px; border-bottom:1px solid #edf2f4; }
+    .checklist li::before { content:"✓"; position:absolute; left:2px; color:var(--green); font-weight:800; }
+    .small { color:var(--muted); font-size:13px; }
+    footer { border-top:3px solid #f89927; margin-top:36px; padding-top:18px; color:var(--muted); font-size:12px; }
+    @media (max-width:800px) {
+      .cards,.branch { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; gap:8px; }
+      .arrow { transform:rotate(90deg); min-height:30px; }
+      .page { margin:0; border-radius:0; padding:22px; }
+      h1 { font-size:29px; }
+    }
+    @media print {
+      body { background:white; }
+      .hero { padding:28px; }
+      .page { box-shadow:none; margin:0 auto; padding:25px 0; }
+      nav { display:none; }
+      section { break-inside:avoid; }
+      a { color:inherit; text-decoration:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="brandbar">
+    <div class="brand-inner">
+      <img class="brand-logo" src="https://assets.esri.com/content/dam/distributor-restricted/esri-cl/logos/gnav-dist-esri-chile-tm.svg" alt="Esri Chile">
+      <span class="brand-label">Servicios Profesionales · Documento técnico</span>
+    </div>
+  </div>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">Manual técnico de implementación y operación</div>
+      <h1>Catastro de singularidades · Implementación en ambiente nuevo</h1>
+      <p class="lead">Arquitectura, despliegue y operación del flujo completo: captura Survey123, revisión en Dashboard, aprobación mediante encuesta de edición, consolidación GP, adjuntos, Arcade y renovación programada de tokens.</p>
+      <div class="meta">
+        <span>Survey123 Connect</span><span>ArcGIS Online</span><span>Arcade</span><span>Python API for ArcGIS</span><span>Actualizado: 6 agosto 2026</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <nav aria-label="Índice">
+      <a href="#resumen">Resumen</a><a href="#cambio">Cambio de modelo</a><a href="#arquitectura">Arquitectura</a><a href="#captura">Survey123</a>
+      <a href="#validacion">Validación</a><a href="#dashboard">Dashboard</a><a href="#consolidacion">Consolidación</a><a href="#arcade">Arcade</a>
+      <a href="#tokens">Tokens</a><a href="#automatizacion">Automatización</a><a href="#configuracion">Configuración</a><a href="#implementacion">Implementación</a><a href="#controles">Controles</a>
+    </nav>
+
+    <section id="resumen">
+      <h2>1. Resumen ejecutivo</h2>
+      <p>La solución es el resultado de una reestructuración del Survey. El modelo anterior guardaba la encuesta completa en una capa de puntos que actuaba como padre. El modelo nuevo deja atributos y evidencias en una tabla padre sin geometría, y distribuye la representación espacial entre dos capas hijas: puntos y líneas. Un revisor habilita la publicación cambiando <code>validacion</code> a <code>si</code>; luego, un notebook incremental vuelve a reunir atributos, geometría y adjuntos en las capas definitivas.</p>
+      <div class="cards">
+        <div class="card"><span class="number">1</span><strong>Capturar</strong>El encuestador registra atributos, evaluación, fotografías, croquis y geometría.</div>
+        <div class="card"><span class="number">2</span><strong>Validar</strong>El registro permanece como <em>No validado</em> hasta una revisión externa.</div>
+        <div class="card"><span class="number">3</span><strong>Consolidar</strong>Solo los aprobados y no cargados se copian a puntos o líneas finales.</div>
+      </div>
+      <div class="callout ok"><strong>Resultado:</strong> capas finales simples, sin necesidad de relaciones para consultar atributos o evidencias, y protegidas contra duplicados mediante <code>id_unique</code>.</div>
+    </section>
+
+    <section id="cambio">
+      <h2>2. Cambio realizado: del padre puntual al padre tabular</h2>
+      <p>El cambio principal resuelve una limitación del diseño original: una encuesta cuyo padre era una capa de puntos obligaba a representar todos los registros como puntos, incluso cuando la singularidad correspondía realmente a un tramo lineal. El rediseño desacopla la ficha alfanumérica de su forma espacial.</p>
+      <table>
+        <thead><tr><th>Aspecto</th><th>Modelo anterior</th><th>Modelo actual</th></tr></thead>
+        <tbody>
+          <tr><td>Registro padre</td><td>Capa de puntos con atributos y geometría.</td><td>Tabla sin geometría con atributos, evaluación y adjuntos.</td></tr>
+          <tr><td>Geometría</td><td>Siempre puntual.</td><td>Se distribuye en <code>singularidades_pt</code> o <code>singularidades_ln</code>.</td></tr>
+          <tr><td>Relación</td><td>La ubicación estaba incorporada en el padre.</td><td><code>padre.globalid</code> se relaciona con <code>hijo.parentglobalid</code>.</td></tr>
+          <tr><td>Tramos</td><td>No quedaban representados por su trazado real.</td><td>Se levantan como geotrace y se conserva la polilínea completa.</td></tr>
+          <tr><td>Coordenadas auxiliares</td><td>Procedían directamente del punto padre.</td><td>Proceden del punto capturado o de un punto representativo calculado desde la línea.</td></tr>
+          <tr><td>Publicación final</td><td>La entidad ya estaba materializada como punto.</td><td>Un proceso validado consolida cada registro en la capa final correspondiente.</td></tr>
+        </tbody>
+      </table>
+      <div class="flow" aria-label="Comparación del cambio de modelo">
+        <div class="node"><b>Antes</b>Capa padre de puntos<br><span class="small">Ficha + adjuntos + punto</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Ahora: tabla padre</b>Ficha + adjuntos<br><span class="small">Sin geometría obligatoria</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Ahora: hijos espaciales</b>Punto o línea<br><span class="small">Según el tipo de singularidad</span></div>
+      </div>
+      <div class="callout"><strong>Beneficio del cambio:</strong> el formulario mantiene una sola ficha técnica común, pero permite representar cada obra con el tipo geométrico correcto sin duplicar el esquema de atributos.</div>
+    </section>
+
+    <section id="arquitectura">
+      <h2>3. Arquitectura y recorrido de la información</h2>
+      <div class="flow" aria-label="Flujo principal">
+        <div class="node"><b>Survey123</b>Tabla padre<br><span class="small">Atributos + fotografías + croquis + GlobalID</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Geometría relacionada</b>Puntos (1) o líneas (2)<br><span class="small">GlobalID hijo + parentglobalid</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Ítem consolidado</b>Puntos (0) o líneas (1)<br><span class="small">Atributos + geometría + adjuntos + id_unique</span></div>
+      </div>
+      <table>
+        <thead><tr><th>Componente</th><th>Identificador</th><th>Función</th></tr></thead>
+        <tbody>
+          <tr><td>Form Survey123 de captura</td><td><code>&lt;ITEM_ID_FORM_CAPTURA&gt;</code></td><td>Definición XLSForm publicada desde Survey123 Connect.</td></tr>
+          <tr><td>Feature Service Survey</td><td><code>&lt;ITEM_ID_SERVICIO_SURVEY&gt;</code></td><td>Tabla padre y capas relacionadas; confirmar los índices asignados al publicar.</td></tr>
+          <tr><td>Feature Service destino</td><td><code>&lt;ITEM_ID_SERVICIO_DESTINO&gt;</code></td><td>Capas finales de puntos y líneas; confirmar los índices asignados al publicar.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><strong>Inventario del ambiente nuevo:</strong> reemplace cada marcador después de publicar. Los IDs son propios de cada portal y no deben copiarse desde el ambiente de desarrollo.</div>
+      <h3>Relaciones del Survey</h3>
+      <div class="branch">
+        <div class="node"><b>Tabla padre.globalid</b>1 : N → <code>singularidades_pt.parentglobalid</code><br>Relación <code>..._singularidades_pt</code></div>
+        <div class="node"><b>Tabla padre.globalid</b>1 : N → <code>singularidades_ln.parentglobalid</code><br>Relación <code>..._singularidades_ln</code></div>
+      </div>
+    </section>
+
+    <section id="captura">
+      <h2>4. Captura y reglas del Survey123</h2>
+      <p>El XLSForm contiene 101 filas de definición, 28 tipos de singularidad y reglas condicionales para solicitar únicamente los datos aplicables. Las listas externas <code>Revisores.csv</code> e <code>iniciativas.csv</code> completan responsables, unidad, código BIP y consultora.</p>
+      <table>
+        <thead><tr><th>Bloque</th><th>Comportamiento principal</th></tr></thead>
+        <tbody>
+          <tr><td>Identificación</td><td><code>identificador</code> se genera con UUID; el usuario se obtiene con <code>property('username')</code>. Encuestador, canal y sector se fuerzan a mayúsculas.</td></tr>
+          <tr><td>Evaluación técnica</td><td>Funcionamiento hidráulico y estado estructural pesan 50% cada uno. El resultado se clasifica como deficiente, regular o buena.</td></tr>
+          <tr><td>Gestión y riesgo</td><td>Factor de riesgo pesa 60% y facilidad de operación 40%, con la misma clasificación.</td></tr>
+          <tr><td>Dimensiones</td><td>Longitud, largo, ancho, alto y diámetro aparecen según la singularidad y no aceptan valores negativos.</td></tr>
+          <tr><td>Evidencias</td><td>3 fotografías obligatorias y hasta 3 adicionales; 1 croquis obligatorio y hasta 2 adicionales.</td></tr>
+          <tr><td>Contexto territorial</td><td>Región, provincia, comuna, cuenca y subcuenca se calculan consultando servicios geográficos.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Selección de geometría</h3>
+      <div class="branch">
+        <div class="node"><b>Punto</b>Para toda singularidad distinta de <code>tramo_tierra</code>, <code>tramo_revestimiento</code> y <code>tramo_infiltraciones</code>. Se guarda PointZ en la repetición <code>singularidades_pt</code>.</div>
+        <div class="node"><b>Línea</b>Para los tres tipos de tramo. La repetición <code>singularidades_ln</code> tiene conteo 1 y guarda un geotrace.</div>
+      </div>
+      <h3>Punto representativo de una línea</h3>
+      <p>Cuando el usuario levanta una línea, el script <code>geometria.js</code> calcula un punto representativo ubicado a la mitad de la longitud acumulada del trazado. En términos operativos cumple la función de “centroide” para las consultas, aunque técnicamente es el <strong>punto medio a lo largo de la polilínea</strong>, no el centroide geométrico del área envolvente.</p>
+      <p>La pregunta oculta <code>ubicacion</code> recibe el punto capturado para obras puntuales o este punto medio para tramos lineales. A partir de esa ubicación común se obtienen:</p>
+      <ul>
+        <li><code>longitud</code> y <code>latitud</code> (X/Y en WGS84);</li>
+        <li><code>este</code> y <code>norte</code> mediante la conversión de <code>utm.js</code>;</li>
+        <li>región, provincia y comuna mediante consultas a las capas DPA;</li>
+        <li>cuenca y subcuenca mediante consultas a los servicios territoriales CNR.</li>
+      </ul>
+      <p>Así, tanto un punto como una línea disponen de una ubicación de consulta homogénea, sin perder la geometría lineal original.</p>
+
+      <h3>Lógica y etiquetas dinámicas de cotas</h3>
+      <p>El XLSForm reutiliza dos campos físicos —<code>cota</code> y <code>cota_manual</code>— pero cambia su etiqueta y forma de captura según la geometría. Esto permite mantener un único esquema en la tabla padre.</p>
+      <table>
+        <thead><tr><th>Tipo</th><th>Campo del Survey</th><th>Etiqueta mostrada</th><th>Origen del valor</th><th>Campo destino</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="2"><strong>Punto</strong></td><td><code>cota</code></td><td>Cota</td><td>Automática: altitud GPS del geopoint, redondeada a 0,1 m.</td><td><code>cota</code></td></tr>
+          <tr><td><code>cota_manual</code></td><td>Cota</td><td>Manual: valor ingresado por el usuario.</td><td><code>cota_manual</code></td></tr>
+          <tr><td rowspan="2"><strong>Línea</strong></td><td><code>cota</code></td><td>Cota Inicial</td><td>Manual: cota del inicio del tramo.</td><td><code>cota_inicial</code></td></tr>
+          <tr><td><code>cota_manual</code></td><td>Cota Final</td><td>Manual: cota del final del tramo.</td><td><code>cota_final</code></td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn"><strong>Lectura importante:</strong> en puntos se conservan los campos <code>cota</code>/<code>cota_manual</code>, que distinguen el valor GPS del valor digitado. En líneas esos campos se renombran al consolidar como <code>cota_inicial</code>/<code>cota_final</code>, coherentes con las etiquetas mostradas al usuario.</div>
+      <div class="callout warn"><strong>Dependencias externas:</strong> los cálculos territoriales requieren disponibilidad de los servicios DPA, cuencas y subcuencas. Los archivos CSV y scripts deben permanecer dentro de <code>media</code> y <code>scripts</code> al publicar.</div>
+    </section>
+
+    <section id="validacion">
+      <h2>5. Puerta de validación</h2>
+      <p>El formulario crea cada padre con <code>validacion = 'No validado'</code>. La pregunta está oculta, por lo que la aprobación debe realizarse fuera del formulario, por ejemplo desde una vista editable, una aplicación de revisión o un proceso administrativo controlado.</p>
+      <pre>validacion = 'si'</pre>
+      <p>El valor es una regla contractual del proceso: debe escribirse exactamente como <code>si</code> si se mantiene la consulta actual. Recién entonces el GlobalID del padre pasa a formar parte del universo elegible.</p>
+      <div class="callout risk"><strong>Punto de control:</strong> configure un dominio controlado. Compruebe que un registro nuevo quede como <code>No validado</code> y que solo la revisi?n escriba exactamente <code>si</code>.</div>
+    </section>
+
+    <section id="dashboard">
+      <h2>6. Dashboard y encuesta de edición</h2>
+      <p>La revisión se realiza en un Dashboard independiente del formulario de terreno. El revisor selecciona una inspección, observa su ubicación, consulta el popup profesional y abre una encuesta de edición embebida para aprobar o rechazar el registro.</p>
+      <table>
+        <thead><tr><th>Componente a publicar</th><th>ID que debe registrar el técnico</th><th>Responsabilidad</th></tr></thead>
+        <tbody>
+          <tr><td>Dashboard de validación</td><td><code>&lt;ITEM_ID_DASHBOARD_VALIDACION&gt;</code></td><td>Interfaz central para seleccionar, revisar y editar.</td></tr>
+          <tr><td>Web Map de revisión</td><td><code>&lt;ITEM_ID_WEBMAP_REVISION&gt;</code></td><td>Mapa nuevo con capas hijas y popups Arcade.</td></tr>
+          <tr><td>Web Map de edición</td><td><code>&lt;ITEM_ID_WEBMAP_EDICION&gt;</code></td><td>Mapa asociado a la experiencia de edición del catastro.</td></tr>
+          <tr><td>Form de edición</td><td><code>&lt;ITEM_ID_FORM_EDICION&gt;</code></td><td>Encuesta embebida que cambia el estado de validación.</td></tr>
+        </tbody>
+      </table>
+      <h3>Composición de la interfaz</h3>
+      <div class="flow">
+        <div class="node"><b>Lista de inspecciones</b>Selecciona el registro y filtra el resto de los elementos.</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Mapa + popup</b>Muestra punto/línea y ficha completa obtenida desde la tabla padre.</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Encuesta de edición</b>El revisor confirma <em>Sí</em> o <em>No</em> después de revisar los antecedentes.</div>
+      </div>
+      <h3>Regla de aprobación</h3>
+      <p>La opción visible “Sí” debe persistir el código exacto <code>si</code> en <code>validacion</code>. El notebook y la herramienta GP consultan ese código, no la etiqueta mostrada. Al guardar, el padre queda elegible para consolidación.</p>
+      <div class="callout warn"><strong>Prueba obligatoria:</strong> editar un registro de prueba y consultar directamente la tabla para confirmar que el valor almacenado sea exactamente <code>si</code>. Una etiqueta “Sí” puede tener un código interno distinto.</div>
+    </section>
+
+    <section id="consolidacion">
+      <h2>7. Consolidación incremental</h2>
+      <p>La implementación se entrega en <code>Notebook/001.ipynb</code> y <code>Notebook/consolidar_survey.py</code>. Debe ejecutarse con una versión de Python de ArcGIS Pro compatible con el portal de destino. Valide primero el modo de simulación.</p>
+      <pre>Padres elegibles = tabla donde validacion = 'si'
+Hijos elegibles  = parentglobalid pertenece a Padres elegibles.globalid
+Hijos nuevos     = hijos.globalid NO existe en destino.id_unique
+
+Por cada hijo nuevo:
+  atributos = campos de su padre
+  geometría = geometría del hijo
+  id_unique = globalid del hijo
+  adjuntos  = adjuntos del padre
+  insertar en destino de puntos o líneas</pre>
+      <h3>Por qué se conserva el GlobalID hijo</h3>
+      <p><code>id_unique</code> guarda el GlobalID de la geometría hija, no el del padre. Así cada punto o línea posee una identidad estable incluso si un padre llega a tener más de una geometría. El GlobalID nuevo que genere el destino no afecta la detección de duplicados.</p>
+      <table>
+        <thead><tr><th>Clave</th><th>Uso</th></tr></thead>
+        <tbody>
+          <tr><td><code>padre.globalid</code></td><td>Une atributos y adjuntos con la geometría.</td></tr>
+          <tr><td><code>hijo.parentglobalid</code></td><td>Referencia el padre del Survey.</td></tr>
+          <tr><td><code>hijo.globalid</code></td><td>Identidad estable de la geometría.</td></tr>
+          <tr><td><code>destino.id_unique</code></td><td>Copia del GlobalID hijo; evita una segunda carga.</td></tr>
+          <tr><td><code>destino.OBJECTID</code></td><td>Identificador requerido por ArcGIS para cargar adjuntos.</td></tr>
+        </tbody>
+      </table>
+      <h3>Adjuntos</h3>
+      <p>Las fotografías y croquis residen en la tabla padre. Después de insertar la entidad consolidada se obtiene su ObjectID y se copian allí los adjuntos. En reintentos, nombre y tamaño permiten reconocer los ya presentes. El proceso no elimina adjuntos ni entidades.</p>
+      <div class="callout"><strong>Política actual:</strong> si <code>id_unique</code> ya existe, el registro se reporta como <code>already_loaded</code> y no se actualiza. Una corrección posterior a la carga requiere una política separada de actualización o republicación.</div>
+    </section>
+
+    <section id="arcade">
+      <h2>8. Popups y expresiones Arcade</h2>
+      <p>Las expresiones profesionales de puntos y líneas consultan la relación desde la geometría hija hacia el padre, construyen una tabla HTML por secciones y presentan sus adjuntos.</p>
+      <table>
+        <thead><tr><th>Contexto</th><th>Configuración recomendada</th></tr></thead>
+        <tbody>
+          <tr><td>Capas hijas del Survey</td><td>Usar <code>arcadePopupProfesionalPuntos.js</code> o <code>arcadePopupProfesionalLineas.js</code>. Aquí sí existen relaciones y los adjuntos permanecen en el padre.</td></tr>
+          <tr><td>Capas consolidadas</td><td>Configurar directamente campos y adjuntos nativos del popup. No usar Arcade relacional: estas capas ya contienen toda la ficha y no tienen relaciones.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn"><strong>Seguridad:</strong> nunca escribir tokens de ArcGIS dentro de Arcade. Un token fijo expira y expone una credencial. El archivo histórico <code>arcadefotos.js</code> debe considerarse obsoleto.</div>
+    </section>
+
+    <section id="tokens">
+      <h2>9. Renovación programada de tokens Arcade</h2>
+      <p>El Web Map de revisión contiene dos expresiones Arcade con una variable <code>var token</code>: una para líneas y otra para puntos. El token permite construir las URLs REST de adjuntos utilizadas por las imágenes del popup. Como los tokens caducan, se incorporó un proceso de renovación agendada.</p>
+      <table>
+        <thead><tr><th>Archivo</th><th>Propósito</th></tr></thead>
+        <tbody>
+          <tr><td><code>Notebook/actualizar_tokens_arcade.py</code></td><td>Motor reutilizable: Regex, recorrido JSON, simulación y actualización.</td></tr>
+          <tr><td><code>Notebook/Actualizar_token_Arcade_CIREN.ipynb</code></td><td>Notebook operativo para pruebas manuales y ejecución programada.</td></tr>
+          <tr><td><code>03_Automatizacion/ActualizarTokensScheduler.py</code></td><td>Entrada de producción para Windows Task Scheduler; simula, exige la cantidad definida en <code>expected_matches</code> y devuelve códigos de salida operativos.</td></tr>
+          <tr><td><code>03_Automatizacion/WINDOWS_TASK_SCHEDULER.md</code></td><td>Configuración de la tarea, cuenta técnica, rutas, prueba y monitoreo.</td></tr>
+        </tbody>
+      </table>
+      <h3>Patrón localizado</h3>
+      <pre>var token = "valor_actual";
+// También admite comillas simples, espacios y saltos de línea.</pre>
+      <p>El algoritmo recorre recursivamente todo el JSON del ítem, cambia únicamente el valor de la asignación y preserva el resto del Arcade. Los logs muestran el ID, título, cantidad y rutas JSON modificadas, pero nunca el token.</p>
+      <p>En una implementación con popup de puntos y popup de líneas se esperan normalmente dos coincidencias; el valor definitivo debe registrarse en <code>expected_matches</code>.</p>
+      <ul>
+        <li>popup de la capa de líneas;</li>
+        <li>popup de la capa de puntos.</li>
+      </ul>
+      <h3>Agendamiento recomendado</h3>
+      <ol>
+        <li>Ejecutar diariamente desde ArcGIS Notebook Server, Windows Task Scheduler o el planificador institucional.</li>
+        <li>Conectar con una cuenta técnica de privilegios mínimos que pueda leer y actualizar el Web Map.</li>
+        <li>Ejecutar primero <code>dry_run=True</code> en la puesta en marcha.</li>
+        <li>Ejecutar <code>dry_run=False</code>, verificar la cantidad configurada y comprobar fotografías en el Dashboard.</li>
+        <li>Alertar si el número de coincidencias cambia de 2 o si ArcGIS rechaza la actualización.</li>
+      </ol>
+      <p>En Windows, configurar como programa <code>propy.bat</code> del ambiente de ArcGIS Pro y pasar como argumento la ruta absoluta de <code>ActualizarTokensScheduler.py</code>. Definir como directorio inicial la carpeta <code>03_Automatizacion</code>. Las rutas del manual son plantillas y deben sustituirse por las del servidor destino.</p>
+      <p>Los códigos de salida son: <code>0</code> correcto, <code>1</code> error general o de configuración, <code>2</code> diferencia en <code>expected_matches</code> sin escritura y <code>3</code> actualización incompleta. El procedimiento detallado está en <code>WINDOWS_TASK_SCHEDULER.md</code>.</p>
+      <div class="callout risk"><strong>Riesgo de dise?o:</strong> un token almacenado en un Web Map puede ser inspeccionado por usuarios con acceso al ?tem. No use <code>client_secret</code> en notebooks. Eval?e a futuro un proxy autenticado o una visualizaci?n que herede la sesi?n.</div>
+    </section>
+
+    <section id="automatizacion">
+      <h2>10. Automatización GP y eventos</h2>
+      <p><code>CatastroConsolidacion.pyt</code> publica la herramienta <strong>Consolidar encuestas validadas</strong> sin parámetros. Cada ejecución vuelve a consultar el servicio completo; por eso no necesita recibir el payload del Survey y es segura frente a reintentos.</p>
+      <div class="flow">
+        <div class="node"><b>Revisor guarda “Sí”</b>La tabla padre persiste <code>validacion='si'</code>.</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Intermediario</b>Webhook/Logic App/Azure Function solicita <code>submitJob</code>.</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>GP Service</b>Inserta únicamente GlobalID hijo ausente en <code>id_unique</code>.</div>
+      </div>
+      <p>El webhook inicial de una encuesta nueva puede ejecutar la GP, pero no cargará ese registro porque nace como <code>No validado</code>. El evento útil es la edición que cambia el estado a <code>si</code>. Si la encuesta de edición o el Dashboard no producen un webhook confiable, se debe ejecutar el GP cada pocos minutos como respaldo.</p>
+      <table>
+        <thead><tr><th>Automatización</th><th>Frecuencia</th><th>Resultado esperado</th></tr></thead>
+        <tbody>
+          <tr><td>GP por edición validada</td><td>Por evento</td><td>Publicación rápida del registro aprobado.</td></tr>
+          <tr><td>GP de reconciliación</td><td>Cada 5–15 minutos</td><td>Recupera eventos perdidos; <code>id_unique</code> evita duplicados.</td></tr>
+          <tr><td>Renovación token Arcade</td><td>Diaria o antes del vencimiento</td><td>Fotografías visibles en popups del Dashboard.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><strong>Separación recomendada:</strong> consolidación y renovación de tokens son trabajos distintos. Un fallo del popup no debe impedir consolidar datos, y una encuesta nueva no debe provocar rotaciones innecesarias del token.</div>
+    </section>
+
+    <section id="configuracion">
+      <h2>11. Configuración central y transferencia técnica</h2>
+      <p>Los notebooks y ejecutores programados utilizan <code>Notebook/configuracion_ciren.json</code>. La Python Toolbox, en cambio, lleva su propia variable <code>CONFIG_JSON</code> embebida para poder compartirse y publicarse sin un archivo de configuración adicional.</p>
+      <table>
+        <thead><tr><th>Sección JSON</th><th>Contenido</th></tr></thead>
+        <tbody>
+          <tr><td><code>arcgis</code></td><td>Ruta del archivo seguro de credenciales y nombre del perfil.</td></tr>
+          <tr><td><code>items</code></td><td>IDs de Survey, destino, Dashboard, Web Maps y Form de edición.</td></tr>
+          <tr><td><code>consolidation</code></td><td>Filtro de aprobación, <code>id_unique</code>, adjuntos y política de actualización.</td></tr>
+          <tr><td><code>arcade_tokens</code></td><td>Ítems con Arcade, coincidencias Regex esperadas y habilitación del notebook.</td></tr>
+          <tr><td><code>automation</code></td><td>Frecuencias recomendadas para reconciliación GP y tokens.</td></tr>
+        </tbody>
+      </table>
+      <h3>Credenciales por usuario y contraseña</h3>
+      <p>No se usa OAuth <code>client_id/client_secret</code>. La ruta configurada apunta a un archivo externo con esta forma:</p>
+      <pre>{
+  "AGOL": {
+    "url": "&lt;URL_PORTAL_DESTINO&gt;",
+    "username": "&lt;USUARIO_TECNICO&gt;",
+    "password": "CONTRASEÑA"
+  }
+}</pre>
+      <p>Se entrega <code>credenciales.example.json</code> como plantilla sin secretos. El archivo real debe:</p>
+      <ul>
+        <li>permanecer fuera del repositorio y de carpetas web;</li>
+        <li>tener permisos de lectura solo para el técnico y la cuenta de ArcGIS Server/planificador;</li>
+        <li>usar una cuenta técnica con permisos mínimos sobre los ítems involucrados;</li>
+        <li>rotar su contraseña según la política CIREN.</li>
+      </ul>
+      <h3>Archivos que deben transferirse juntos</h3>
+      <table>
+        <thead><tr><th>Archivo</th><th>Uso</th></tr></thead>
+        <tbody>
+          <tr><td><code>configuracion_ciren.json</code></td><td>Configuración de notebooks y tareas programadas.</td></tr>
+          <tr><td><code>configuracion_ciren.py</code></td><td>Carga configuración/credenciales para notebooks y tareas.</td></tr>
+          <tr><td><code>CatastroConsolidacion.pyt</code></td><td>Herramienta GP sin parámetros; incluye su configuración como variable JSON interna.</td></tr>
+          <tr><td><code>consolidar_survey.py</code></td><td>Motor de consolidación.</td></tr>
+          <tr><td><code>actualizar_tokens_arcade.py</code></td><td>Motor Regex para Arcade.</td></tr>
+          <tr><td><code>ActualizarTokensScheduler.py</code></td><td>Trabajo de producción para Windows Task Scheduler.</td></tr>
+          <tr><td><code>WINDOWS_TASK_SCHEDULER.md</code></td><td>Guía de instalación y operación de la tarea de Windows.</td></tr>
+          <tr><td><code>001.ipynb</code> y <code>Actualizar_token_Arcade_CIREN.ipynb</code></td><td>Pruebas, diagnóstico y operación manual.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn"><strong>Publicación de la PYT:</strong> antes de compartirla, editar únicamente <code>CONFIG_JSON</code> dentro de <code>CatastroConsolidacion.pyt</code>. La ruta <code>arcgis.credentials_file</code> debe existir también en ArcGIS Server y ser legible por la cuenta del servicio. No incorporar la contraseña dentro de la PYT.</div>
+    </section>
+
+    <section id="implementacion">
+      <h2>12. Implementación paso a paso</h2>
+      <ol>
+        <li><strong>Copiar solución:</strong> transferir completa la carpeta <code>Notebook</code> y este manual.</li>
+        <li><strong>Preparar credenciales:</strong> copiar <code>credenciales.example.json</code> a una ubicación segura, completar usuario/contraseña y ajustar su ruta en <code>configuracion_ciren.json</code>.</li>
+        <li><strong>Validar IDs:</strong> confirmar los ítems de <code>configuracion_ciren.json</code> y replicarlos en <code>CONFIG_JSON</code> de la PYT antes de publicarla.</li>
+        <li><strong>Publicar el Survey:</strong> confirmar tabla padre 0, puntos 1, líneas 2, relaciones y adjuntos habilitados en el padre.</li>
+        <li><strong>Preparar destino:</strong> mantener capas Point y Polyline con los campos del padre, adjuntos habilitados y campo GUID <code>id_unique</code>.</li>
+        <li><strong>Proteger unicidad:</strong> cuando la plataforma lo permita, crear un índice único sobre <code>id_unique</code> en cada capa destino.</li>
+        <li><strong>Crear revisión:</strong> conectar Dashboard, lista, mapa, popup y Form de edición; permitir que el revisor cambie <code>validacion</code> de <em>No validado</em> a <code>si</code>.</li>
+        <li><strong>Configurar notebook:</strong> verificar IDs de ítems, archivo externo de credenciales y <code>PARENT_WHERE = "validacion = 'si'"</code>.</li>
+        <li><strong>Simular:</strong> ejecutar con <code>EXECUTE_CHANGES = False</code> y revisar insertados, filtrados, ya cargados, huérfanos y errores.</li>
+        <li><strong>Publicar:</strong> cambiar temporalmente a <code>EXECUTE_CHANGES = True</code> y ejecutar la actualización.</li>
+        <li><strong>Verificar:</strong> comparar conteos, geometrías, atributos, <code>id_unique</code> y cantidad de adjuntos.</li>
+        <li><strong>Configurar popups:</strong> Arcade relacional en Survey; campos y adjuntos directos en capas consolidadas.</li>
+        <li><strong>Publicar GP:</strong> desplegar juntos <code>CatastroConsolidacion.pyt</code>, <code>consolidar_survey.py</code> y la carpeta <code>Lib</code>, con credenciales y ruta de logs accesibles por ArcGIS Server.</li>
+        <li><strong>Conectar evento:</strong> usar un intermediario para autenticar y ejecutar <code>submitJob</code> cuando la edición quede aprobada.</li>
+        <li><strong>Agendar tokens:</strong> registrar <code>ActualizarTokensScheduler.py</code> con <code>propy.bat</code> en Windows Task Scheduler, ejecutarlo diariamente y verificar <code>expected_matches</code>, el código de salida y el log.</li>
+      </ol>
+    </section>
+
+    <section id="controles">
+      <h2>13. Controles operativos y recomendaciones</h2>
+      <ul class="checklist">
+        <li>Usar un dominio de valores para <code>validacion</code>; idealmente códigos estables como <code>no</code>/<code>si</code>.</li>
+        <li>Mantener <code>id_unique</code> poblado y único; nunca regenerarlo en el destino.</li>
+        <li>Ejecutar primero la simulación y bloquear la carga si existen huérfanos o errores.</li>
+        <li>No guardar contraseñas o tokens dentro de XLSForm, Arcade, notebooks o HTML.</li>
+        <li>No editar lógica dentro de scripts: notebooks/tareas cambian en <code>configuracion_ciren.json</code>; la GP cambia solo en <code>CONFIG_JSON</code> de la PYT.</li>
+        <li>Conservar copias versionadas del XLSX, scripts JavaScript, CSV y módulo Python.</li>
+        <li>Monitorear cambios de esquema y nombres especiales, especialmente las cotas de la capa de puntos.</li>
+        <li>Definir explícitamente qué ocurre si un registro aprobado cambia después de consolidarse.</li>
+        <li>Registrar fecha de ejecución, métricas y errores cuando el notebook se programe.</li>
+        <li>No incorporar ni distribuir <code>client_secret</code>; utilizar exclusivamente la cuenta t?cnica configurada por credenciales.</li>
+        <li>No imprimir tokens y alertar si el actualizador encuentra una cantidad distinta de dos expresiones.</li>
+      </ul>
+      <h3>Correspondencia especial de campos</h3>
+      <table>
+        <thead><tr><th>Origen</th><th>Destino puntos</th><th>Destino líneas</th></tr></thead>
+        <tbody>
+          <tr><td><code>cota</code></td><td><code>cota</code></td><td><code>cota_inicial</code></td></tr>
+          <tr><td><code>cota_manual</code></td><td><code>cota_manual</code></td><td><code>cota_final</code></td></tr>
+        </tbody>
+      </table>
+      <div class="callout ok"><strong>Criterio de aceptación:</strong> la simulación no presenta huérfanos ni errores, procesa solo <code>validacion = 'si'</code>, evita duplicados mediante <code>id_unique</code> y copia geometría, atributos y adjuntos.</div>
+    </section>
+
+    <footer>
+      Esri Chile · Manual técnico elaborado a partir del XLSForm, scripts JavaScript, servicios, Dashboard, Arcade y automatizaciones del proyecto CIREN. Documento apto para impresión en PDF.
+    </footer>
+  </main>
+</body>
+</html>
+

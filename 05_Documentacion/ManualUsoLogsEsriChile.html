@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manual de Uso — Módulo de Logs (Lib.esrilogs)</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --panel: #f7f8fb;
+            --panel2: #ffffff;
+            --text: #0f172a;
+            --muted: #475569;
+            --border: #e2e8f0;
+            --brand: #000F7B;
+            /* Esri Chile */
+            --brand2: #1d4ed8;
+            --ok: #16a34a;
+            --warn: #f59e0b;
+            --err: #ef4444;
+            --code-bg: #0b1220;
+            --code: #e6edf3;
+            --code-muted: #93a4b8;
+            --shadow: 0 10px 30px rgba(2, 6, 23, .08);
+            --radius: 16px;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--sans);
+            color: var(--text);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        a {
+            color: var(--brand2);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: saturate(180%) blur(10px);
+            background: rgba(255, 255, 255, .85);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .brand img {
+            height: 30px;
+            width: auto;
+            display: block;
+        }
+
+        .brand .title {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+        }
+
+        .brand .title strong {
+            font-size: 14px;
+            letter-spacing: .2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .brand .title span {
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(2, 6, 23, .04);
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .pill .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 99px;
+            background: var(--brand);
+            box-shadow: 0 0 0 3px rgba(0, 15, 123, .12);
+        }
+
+        .hero {
+            margin-top: 18px;
+            padding: 26px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background:
+                radial-gradient(1200px 300px at 20% 0%, rgba(0, 15, 123, .10), transparent 55%),
+                radial-gradient(900px 240px at 80% 10%, rgba(29, 78, 216, .10), transparent 55%),
+                var(--panel2);
+            box-shadow: var(--shadow);
+        }
+
+        .hero h1 {
+            margin: 0 0 6px 0;
+            font-size: 26px;
+            letter-spacing: -.3px;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            max-width: 75ch;
+            line-height: 1.55;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 310px 1fr;
+            gap: 18px;
+            margin-top: 18px;
+            align-items: start;
+        }
+
+        @media (max-width: 980px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+
+            .toc {
+                position: static !important
+            }
+        }
+
+        .card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--panel2);
+            box-shadow: 0 8px 24px rgba(2, 6, 23, .06);
+            overflow: hidden;
+        }
+
+        .card .card-h {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .card .card-h h2 {
+            margin: 0;
+            font-size: 14px;
+            letter-spacing: .2px;
+        }
+
+        .card .card-b {
+            padding: 16px
+        }
+
+        .toc {
+            position: sticky;
+            top: 78px;
+            padding: 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+            margin: 0
+        }
+
+        .toc li {
+            margin: 6px 0
+        }
+
+        .toc a {
+            display: block;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .toc a:hover {
+            background: var(--panel);
+            border-color: var(--border);
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        section {
+            scroll-margin-top: 92px;
+        }
+
+        section+section {
+            margin-top: 18px
+        }
+
+        .kpi {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .kpi .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .9);
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .tag b {
+            color: var(--text);
+            font-weight: 600
+        }
+
+        .tag .sw {
+            width: 10px;
+            height: 10px;
+            border-radius: 99px;
+            background: var(--brand2);
+            box-shadow: 0 0 0 3px rgba(29, 78, 216, .12);
+        }
+
+        .note {
+            border: 1px solid rgba(0, 15, 123, .18);
+            background: rgba(0, 15, 123, .04);
+            padding: 12px 14px;
+            border-radius: 14px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .note strong {
+            color: var(--text)
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: #fff;
+        }
+
+        .table th,
+        .table td {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .table th {
+            background: #f8fafc;
+            color: #0b1220;
+            font-weight: 600;
+            font-size: 12.5px;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #fff;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .badge.ok .dot {
+            background: var(--ok)
+        }
+
+        .badge.warn .dot {
+            background: var(--warn)
+        }
+
+        .badge.err .dot {
+            background: var(--err)
+        }
+
+        .badge .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 99px;
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, .08);
+        }
+
+        pre {
+            margin: 12px 0 0 0;
+            padding: 14px 14px;
+            border-radius: 14px;
+            background: var(--code-bg);
+            color: var(--code);
+            overflow: auto;
+            border: 1px solid rgba(148, 163, 184, .18);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .04);
+            font-family: var(--mono);
+            font-size: 12.8px;
+            line-height: 1.55;
+        }
+
+        code {
+            font-family: var(--mono)
+        }
+
+        .hint {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px dashed var(--border);
+            color: var(--muted);
+            background: #fff;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 980px) {
+            .two {
+                grid-template-columns: 1fr
+            }
+        }
+
+        footer {
+            margin: 22px 0 8px 0;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .mini {
+            font-size: 12px;
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="topbar">
+            <div class="brand">
+                <img src="https://assets.esri.com/content/dam/distributor-restricted/esri-cl/logos/gnav-dist-esri-chile-tm.svg"
+                    alt="Esri Chile" />
+                <div class="title">
+                    <strong>Manual de Uso — Módulo de Logs</strong>
+                    <span>Lib.esrilogs • Tema claro • Consola enriquecida (Rich) opcional</span>
+                </div>
+            </div>
+            <div class="pill" title="Versión del manual">
+                <span class="dot"></span>
+                <span><b>v1.0</b> • Python</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="hero">
+            <h1>Lib.esrilogs — Logging profesional para scripts</h1>
+            <p>
+                Este manual describe cómo importar, configurar y utilizar el módulo <b>Lib.esrilogs</b> para generar
+                logs consistentes en archivo
+                y consola, con soporte opcional de salida coloreada mediante <code>rich</code>, rotación por antigüedad
+                y utilidades para registrar
+                DataFrames y tracebacks de error.
+            </p>
+            <div class="kpi">
+                <div class="tag"><span class="sw"></span><b>Salida dual</b> (archivo + consola)</div>
+                <div class="tag"><span class="sw"></span><b>Rotación</b> por antigüedad (días)</div>
+                <div class="tag"><span class="sw"></span><b>Modo</b> <code>archive</code> / <code>wipe</code></div>
+                <div class="tag"><span class="sw"></span><b>Rich</b> opcional + auto-install</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- TOC -->
+            <aside class="card toc">
+                <div class="card-h">
+                    <h2>Índice</h2>
+                    <span class="mini">Navegación</span>
+                </div>
+                <div class="card-b">
+                    <ul>
+                        <li><a href="#importacion">1. Importación</a></li>
+                        <li><a href="#creacion">2. Creación del logger</a></li>
+                        <li><a href="#parametros">3. Parámetros y rotación</a></li>
+                        <li><a href="#estructura">4. Estructura de carpetas</a></li>
+                        <li><a href="#metodos">5. Métodos disponibles</a></li>
+                        <li><a href="#dataframe">6. Registro de DataFrames</a></li>
+                        <li><a href="#errores">7. Captura de errores</a></li>
+                        <li><a href="#rich">8. Consola coloreada (Rich)</a></li>
+                        <li><a href="#ejemplo">9. Ejemplo completo</a></li>
+                        <li><a href="#buenas">10. Buenas prácticas</a></li>
+                        <li><a href="#produccion">11. Recomendación producción</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- CONTENT -->
+            <div>
+                <section id="importacion" class="card">
+                    <div class="card-h">
+                        <h2>1. Importación del módulo</h2>
+                        <span class="badge ok"><span class="dot"></span> Básico</span>
+                    </div>
+                    <div class="card-b">
+                        <div class="note">
+                            <strong>Objetivo:</strong> importar la clase <code>Logfile</code> desde
+                            <code>Lib.esrilogs</code> y preparar el directorio base con <code>Path</code>.
+                        </div>
+                        <pre><code>from Lib.esrilogs import Logfile
+from pathlib import Path</code></pre>
+                        <div class="hint">
+                            Consejo: use <code>Path(__file__).parent</code> para dejar los logs junto al script, o un
+                            path centralizado si es un job compartido.
+                        </div>
+                    </div>
+                </section>
+
+                <section id="creacion" class="card">
+                    <div class="card-h">
+                        <h2>2. Creación del logger</h2>
+                        <span class="badge ok"><span class="dot"></span> Recomendado</span>
+                    </div>
+                    <div class="card-b">
+                        <p class="mini" style="margin:0 0 10px 0;">
+                            Crea un log con nombre base (sin extensión). El módulo generará
+                            <code>/Logs/&lt;nombre&gt;.log</code>.
+                        </p>
+                        <pre><code>generalname = "ActualizarDatos"
+
+logs = Logfile(
+    generalname,
+    log_path=Path(__file__).parent,
+    max_age_days=7,
+    rotate_mode="wipe"
+)</code></pre>
+                        <div class="hint">
+                            <b>rotate_mode="wipe"</b> inicia limpio cuando el log supera la antigüedad, sin conservar
+                            backups en <code>Old/</code>.
+                        </div>
+                    </div>
+                </section>
+
+                <section id="parametros" class="card">
+                    <div class="card-h">
+                        <h2>3. Parámetros y rotación</h2>
+                        <span class="badge warn"><span class="dot"></span> Configuración</span>
+                    </div>
+                    <div class="card-b">
+                        <table class="table" aria-label="Parámetros del Logfile">
+                            <thead>
+                                <tr>
+                                    <th>Parámetro</th>
+                                    <th>Tipo</th>
+                                    <th>Descripción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>file_name</code></td>
+                                    <td><code>str</code></td>
+                                    <td>Nombre base del archivo log (se agrega <code>.log</code> automáticamente).</td>
+                                </tr>
+                                <tr>
+                                    <td><code>log_path</code></td>
+                                    <td><code>Path | str</code></td>
+                                    <td>Carpeta base. El módulo crea <code>log_path/Logs</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>overwrite</code></td>
+                                    <td><code>bool</code></td>
+                                    <td>Si es <code>True</code>, fuerza rotación/limpieza al iniciar.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>max_age_days</code></td>
+                                    <td><code>int</code></td>
+                                    <td>Días máximos permitidos para el log actual. Si supera, se rota.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>rotate_mode</code></td>
+                                    <td><code>str</code></td>
+                                    <td>
+                                        <code>"archive"</code>: mueve el log a <code>Logs/Old/&lt;nombre&gt;/</code> con
+                                        timestamp.<br />
+                                        <code>"wipe"</code>: borra el log y comienza limpio (sin crear
+                                        <code>Old/</code>).
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="two">
+                            <div class="note">
+                                <strong>archive</strong><br />
+                                Útil para auditoría o debugging histórico. Mantiene respaldos con fecha/hora.
+                            </div>
+                            <div class="note">
+                                <strong>wipe</strong><br />
+                                Ideal para jobs recurrentes donde solo interesa el log reciente y evitar acumulación.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="estructura" class="card">
+                    <div class="card-h">
+                        <h2>4. Estructura de carpetas generada</h2>
+                        <span class="badge ok"><span class="dot"></span> Output</span>
+                    </div>
+                    <div class="card-b">
+                        <div class="note">
+                            El módulo crea automáticamente <code>Logs/</code>. En modo <code>archive</code> se creará
+                            además <code>Logs/Old/</code>.
+                        </div>
+                        <pre><code>/tu_proyecto
+ └── Logs/
+      ├── ActualizarDatos.log
+      └── Old/
+          └── ActualizarDatos/
+              └── ActualizarDatos-09-02-2026 12-10-22.log</code></pre>
+                        <div class="hint">
+                            En modo <code>wipe</code> no se crean carpetas <code>Old</code>. Si existían de ejecuciones
+                            anteriores, el módulo puede limpiarlas (según tu implementación).
+                        </div>
+                    </div>
+                </section>
+
+                <section id="metodos" class="card">
+                    <div class="card-h">
+                        <h2>5. Métodos disponibles</h2>
+                        <span class="badge ok"><span class="dot"></span> API</span>
+                    </div>
+                    <div class="card-b">
+                        <table class="table" aria-label="Métodos de Logfile">
+                            <thead>
+                                <tr>
+                                    <th>Método</th>
+                                    <th>Uso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>start_script(msg)</code></td>
+                                    <td>Marca el inicio del script / job.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>start_funtion(msg)</code></td>
+                                    <td>Marca inicio de una función o subproceso.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>start(msg)</code></td>
+                                    <td>Inicio genérico de etapa.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>info(msg)</code></td>
+                                    <td>Mensaje informativo de ejecución.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>warning(msg)</code></td>
+                                    <td>Advertencia (no fatal).</td>
+                                </tr>
+                                <tr>
+                                    <td><code>error(msg)</code></td>
+                                    <td>Error (marca como ejecución fallida / incidente).</td>
+                                </tr>
+                                <tr>
+                                    <td><code>end(msg)</code></td>
+                                    <td>Fin de etapa.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>close(msg)</code></td>
+                                    <td>
+                                        Cierre del proceso. Calcula duración usando timestamps START/END si existen
+                                        y la agrega automáticamente.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <pre><code>logs.start_script("Inicio proceso de carga")
+logs.info("Consultando API")
+logs.warning("No se encontraron resultados para la fecha")
+logs.error("Falló la carga al Image Server")
+logs.end("Fin etapa de consulta")
+logs.close("Proceso terminado")</code></pre>
+                    </div>
+                </section>
+
+                <section id="dataframe" class="card">
+                    <div class="card-h">
+                        <h2>6. Registro de DataFrames (debug avanzado)</h2>
+                        <span class="badge warn"><span class="dot"></span> Debug</span>
+                    </div>
+                    <div class="card-b">
+                        <div class="note">
+                            Registra el DataFrame en el archivo log manteniendo el formato tabular y removiendo acentos
+                            para compatibilidad.
+                        </div>
+                        <pre><code>import pandas as pd
+
+df = pd.DataFrame({"A":[1,2], "B":[3,4]})
+logs.dataframe(df)</code></pre>
+                    </div>
+                </section>
+
+                <section id="errores" class="card">
+                    <div class="card-h">
+                        <h2>7. Captura automática de errores</h2>
+                        <span class="badge err"><span class="dot"></span> Exception</span>
+                    </div>
+                    <div class="card-b">
+                        <div class="note">
+                            Use <code>capturaError</code> para registrar mensaje, excepción y traceback completo.
+                            Recomendado para bloques <code>try/except</code>.
+                        </div>
+                        <pre><code>try:
+    1 / 0
+except Exception as e:
+    capturaError(e, "Error en cálculo", logs)</code></pre>
+                    </div>
+                </section>
+
+                <section id="rich" class="card">
+                    <div class="card-h">
+                        <h2>8. Consola coloreada (Rich) — opcional</h2>
+                        <span class="badge ok"><span class="dot"></span> UI</span>
+                    </div>
+                    <div class="card-b">
+                        <div class="note">
+                            El módulo utiliza <code>rich</code> si está disponible (y puede auto-instalarlo si está
+                            habilitado), para resaltar niveles, timestamps y keywords.
+                        </div>
+                        <div class="two">
+                            <div>
+                                <p class="mini" style="margin:0 0 8px 0;"><b>Desactivar Rich</b> (forzar salida
+                                    estándar):</p>
+                                <pre><code>set ESRILOGS_RICH=0</code></pre>
+                            </div>
+                            <div>
+                                <p class="mini" style="margin:0 0 8px 0;"><b>Evitar auto-instalación</b> (mantener
+                                    import manual):</p>
+                                <pre><code>set ESRILOGS_RICH_AUTOINSTALL=0</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="ejemplo" class="card">
+                    <div class="card-h">
+                        <h2>9. Ejemplo completo (plantilla recomendada)</h2>
+                        <span class="badge ok"><span class="dot"></span> Template</span>
+                    </div>
+                    <div class="card-b">
+                        <pre><code>from Lib.esrilogs import Logfile, capturaError
+from pathlib import Path
+
+logs = Logfile(
+    "ActualizarDatos",
+    log_path=Path(__file__).parent,
+    max_age_days=7,
+    rotate_mode="wipe"
+)
+
+logs.start_script("Inicio job de sincronización")
+
+try:
+    logs.info("Conectando a ArcGIS Portal")
+    logs.info("Descargando imágenes")
+    logs.end("Carga de imágenes finalizada")
+
+except Exception as e:
+    capturaError(e, "Error general", logs)
+
+finally:
+    logs.close("Proceso completado")</code></pre>
+                    </div>
+                </section>
+
+                <section id="buenas" class="card">
+                    <div class="card-h">
+                        <h2>10. Buenas prácticas</h2>
+                        <span class="badge ok"><span class="dot"></span> Standard</span>
+                    </div>
+                    <div class="card-b">
+                        <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.65; font-size:13px;">
+                            <li>Un <b>logger por script</b> principal (evitar múltiples archivos simultáneos sin
+                                necesidad).</li>
+                            <li>Usar <code>start_script()</code> al inicio para dejar marca clara de ejecución.</li>
+                            <li>En procesos largos, usar <code>start()</code>/<code>end()</code> por etapas.</li>
+                            <li>Siempre ejecutar <code>close()</code> en un <code>finally</code> para registrar duración
+                                y cierre limpio.</li>
+                            <li>Preferir <code>rotate_mode="wipe"</code> en jobs recurrentes para evitar acumulación de
+                                históricos.</li>
+                            <li>Preferir <code>rotate_mode="archive"</code> para auditoría y trazabilidad.</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="produccion" class="card">
+                    <div class="card-h">
+                        <h2>11. Recomendación para producción</h2>
+                        <span class="badge warn"><span class="dot"></span> Ops</span>
+                    </div>
+                    <div class="card-b">
+                        <table class="table" aria-label="Recomendaciones">
+                            <thead>
+                                <tr>
+                                    <th>Tipo de proceso</th>
+                                    <th>Configuración sugerida</th>
+                                    <th>Motivo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Job automático diario / scheduler</td>
+                                    <td><code>max_age_days=3</code>, <code>rotate_mode="wipe"</code></td>
+                                    <td>Evita acumulación. Mantiene log reciente para soporte.</td>
+                                </tr>
+                                <tr>
+                                    <td>Proceso crítico / auditoría</td>
+                                    <td><code>max_age_days=14</code>, <code>rotate_mode="archive"</code></td>
+                                    <td>Conserva evidencia y trazabilidad histórica.</td>
+                                </tr>
+                                <tr>
+                                    <td>Debug puntual</td>
+                                    <td><code>overwrite=True</code></td>
+                                    <td>Parte limpio cada vez para analizar una sola corrida.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="hint">
+                            Recomendación: documente en el encabezado del script el modo elegido
+                            (<code>wipe</code>/<code>archive</code>) y la antigüedad (<code>max_age_days</code>) para
+                            facilitar soporte.
+                        </div>
+                    </div>
+                </section>
+
+                <footer>
+                    © Esri Chile • Manual interno • Lib.esrilogs
+                </footer>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
