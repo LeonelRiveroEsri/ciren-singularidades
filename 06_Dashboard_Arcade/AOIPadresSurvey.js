@@ -1,5 +1,5 @@
 // Expresión de datos Arcade para ArcGIS Dashboards.
-// Devuelve un FeatureSet poligonal con una AOI por registro padre del Survey.
+// Genera una AOI poligonal por registro padre y conserva su esquema completo.
 
 // =====================================================
 // 1. CONFIGURACIÓN DEL AMBIENTE DESTINO
@@ -12,34 +12,57 @@ var parentTableId = 0;
 var pointLayerId = 1;
 var lineLayerId = 2;
 
-// Tamaño de influencia usado para convertir puntos y líneas en polígonos.
 var pointBufferMeters = 50;
 var lineBufferMeters = 25;
 
-// Usar "validacion = 'si'" si el Dashboard debe mostrar solo aprobados.
+// Ejemplo para mostrar solo aprobados: "validacion = 'si'".
 var parentWhere = "1=1";
 
 // =====================================================
-// 2. CONSULTAR PADRE E HIJOS DEL SURVEY
+// 2. FUNCIONES DE APOYO
 // =====================================================
+function safeText(value, fallback) {
+    if (IsEmpty(value)) {
+        return fallback;
+    }
+    return Text(value);
+}
+
+function htmlEncode(value, fallback) {
+    var result = safeText(value, fallback);
+    result = Replace(result, "&", "&amp;");
+    result = Replace(result, "<", "&lt;");
+    result = Replace(result, ">", "&gt;");
+    result = Replace(result, '"', "&quot;");
+    return Replace(result, "'", "&#39;");
+}
+
+// Text(JSON) no conserva Date como milisegundos. Esta conversión mantiene
+// los campos de fecha utilizables en filtros, selectores y acciones.
+function outputValue(value, fieldType) {
+    if (IsEmpty(value)) {
+        return null;
+    }
+    if (fieldType == "esriFieldTypeDate") {
+        return Number(value);
+    }
+    if (fieldType == "esriFieldTypeGlobalID" || fieldType == "esriFieldTypeGUID") {
+        return Text(value);
+    }
+    return value;
+}
+
+// =====================================================
+// 3. CONSULTAR PADRE E HIJOS DEL SURVEY
+// =====================================================
+// ["*"] es intencional: las acciones del Dashboard reciben todo el padre.
 var parents = FeatureSetByPortalItem(
     portal,
     surveyItemId,
     parentTableId,
-    [
-        "globalid",
-        "identificador",
-        "nombre_canal",
-        "singularidades",
-        "validacion",
-        "sector",
-        "region",
-        "provincia",
-        "comuna"
-    ],
+    ["*"],
     false
 );
-
 parents = Filter(parents, parentWhere);
 
 var points = FeatureSetByPortalItem(
@@ -59,31 +82,46 @@ var lines = FeatureSetByPortalItem(
 );
 
 // =====================================================
-// 3. DEFINIR EL FEATURESET POLIGONAL DE SALIDA
+// 4. REPLICAR EL ESQUEMA COMPLETO DEL PADRE
 // =====================================================
+var parentSchema = Schema(parents);
+var parentFields = parentSchema.fields;
+var outputFields = [];
+
+for (var field in parentFields) {
+    var fieldName = field.name;
+    var fieldType = field.type;
+
+    // Un FeatureSet calculado no necesita el ObjectID original. GlobalID y GUID
+    // se publican como texto para evitar restricciones de campos de sistema.
+    if (fieldType == "esriFieldTypeOID") {
+        continue;
+    }
+    if (fieldType == "esriFieldTypeGlobalID" || fieldType == "esriFieldTypeGUID") {
+        fieldType = "esriFieldTypeString";
+    }
+
+    Push(outputFields, {
+        name: fieldName,
+        alias: DefaultValue(field.alias, fieldName),
+        type: fieldType
+    });
+}
+
+Push(outputFields, { name: "cantidad_puntos", alias: "Puntos", type: "esriFieldTypeInteger" });
+Push(outputFields, { name: "cantidad_lineas", alias: "Líneas", type: "esriFieldTypeInteger" });
+Push(outputFields, { name: "cantidad_geometrias", alias: "Geometrías", type: "esriFieldTypeInteger" });
+Push(outputFields, { name: "area_ha", alias: "Área AOI (ha)", type: "esriFieldTypeDouble" });
+Push(outputFields, { name: "html", alias: "Tarjeta HTML", type: "esriFieldTypeString" });
+
 var output = {
-    fields: [
-        { name: "aoi_id", alias: "GlobalID padre", type: "esriFieldTypeString" },
-        { name: "identificador", alias: "ID inspección", type: "esriFieldTypeString" },
-        { name: "nombre_canal", alias: "Canal", type: "esriFieldTypeString" },
-        { name: "singularidad", alias: "Singularidad", type: "esriFieldTypeString" },
-        { name: "validacion", alias: "Validación", type: "esriFieldTypeString" },
-        { name: "sector", alias: "Sector", type: "esriFieldTypeString" },
-        { name: "region", alias: "Región", type: "esriFieldTypeString" },
-        { name: "provincia", alias: "Provincia", type: "esriFieldTypeString" },
-        { name: "comuna", alias: "Comuna", type: "esriFieldTypeString" },
-        { name: "cantidad_puntos", alias: "Puntos", type: "esriFieldTypeInteger" },
-        { name: "cantidad_lineas", alias: "Líneas", type: "esriFieldTypeInteger" },
-        { name: "cantidad_geometrias", alias: "Geometrías", type: "esriFieldTypeInteger" },
-        { name: "area_ha", alias: "Área AOI (ha)", type: "esriFieldTypeDouble" },
-        { name: "html", alias: "Resumen HTML", type: "esriFieldTypeString" }
-    ],
+    fields: outputFields,
     geometryType: "esriGeometryPolygon",
     features: []
 };
 
 // =====================================================
-// 4. CREAR UNA AOI POR PADRE
+// 5. CREAR UNA AOI Y UNA TARJETA POR PADRE
 // =====================================================
 for (var parent in parents) {
     var parentId = parent.globalid;
@@ -91,7 +129,6 @@ for (var parent in parents) {
         continue;
     }
 
-    // @parentId usa sustitución segura de variables Arcade en el SQL.
     var parentPoints = Filter(points, "parentglobalid = @parentId");
     var parentLines = Filter(lines, "parentglobalid = @parentId");
     var aoiParts = [];
@@ -99,75 +136,72 @@ for (var parent in parents) {
     for (var pointFeature in parentPoints) {
         var pointGeometry = Geometry(pointFeature);
         if (!IsEmpty(pointGeometry)) {
-            Push(
-                aoiParts,
-                BufferGeodetic(pointGeometry, pointBufferMeters, "meters")
-            );
+            Push(aoiParts, BufferGeodetic(pointGeometry, pointBufferMeters, "meters"));
         }
     }
 
     for (var lineFeature in parentLines) {
         var lineGeometry = Geometry(lineFeature);
         if (!IsEmpty(lineGeometry)) {
-            Push(
-                aoiParts,
-                BufferGeodetic(lineGeometry, lineBufferMeters, "meters")
-            );
+            Push(aoiParts, BufferGeodetic(lineGeometry, lineBufferMeters, "meters"));
         }
     }
 
-    // Un padre sin geometría relacionada no puede generar una AOI.
     if (Count(aoiParts) == 0) {
         continue;
     }
 
-    // Todos los elementos de aoiParts ya son polígonos compatibles.
-    var mergedGeometry = Union(aoiParts);
-    var aoiGeometry = ConvexHull(mergedGeometry);
+    var aoiGeometry = ConvexHull(Union(aoiParts));
     var pointCount = Count(parentPoints);
     var lineCount = Count(parentLines);
     var totalCount = pointCount + lineCount;
     var areaHectares = Round(AreaGeodetic(aoiGeometry, "hectares"), 4);
 
-    var inspectionId = DefaultValue(parent.identificador, "Sin identificador");
-    var canal = DefaultValue(parent.nombre_canal, "Sin canal");
-    var singularity = DefaultValue(parent.singularidades, "Sin singularidad");
-    var validation = DefaultValue(parent.validacion, "Sin estado");
+    var inspectionId = htmlEncode(parent.identificador, "Sin identificador");
+    var canal = htmlEncode(parent.nombre_canal, "Sin canal");
+    var singularity = htmlEncode(parent.singularidades, "Sin singularidad");
+    var comuna = htmlEncode(parent.comuna, "Sin comuna");
+    var validation = Lower(safeText(parent.validacion, "pendiente"));
+    var statusLabel = IIf(validation == "si", "VALIDADO", Upper(htmlEncode(validation, "PENDIENTE")));
+    var statusBackground = IIf(validation == "si", "#e5f5ea", "#fff4d6");
+    var statusColor = IIf(validation == "si", "#236b3b", "#7a5310");
 
     var html =
-        "<div style='font-family:Avenir Next,Segoe UI,Arial,sans-serif;" +
-        "background:#fff;border:1px solid #d9e2ec;border-left:5px solid #007ac2;" +
-        "border-radius:8px;padding:12px 14px;'>" +
-        "<div style='font-size:15px;font-weight:700;color:#1f2d3d;'>" +
-        inspectionId +
-        "</div><div style='font-size:12px;color:#5f6b76;margin-top:3px;'>" +
-        canal +
-        " · " +
-        singularity +
-        "</div><div style='margin-top:8px;font-size:12px;color:#1f2d3d;'>" +
-        "Geometrías: <b>" +
-        Text(totalCount) +
-        "</b> · Área AOI: <b>" +
-        Text(areaHectares, "#,###.####") +
-        " ha</b></div></div>";
+        "<div style='box-sizing:border-box;width:100%;font-family:Avenir Next,Segoe UI,Arial,sans-serif;" +
+        "background:#ffffff;border:1px solid #d8e1e8;border-left:6px solid #007ac2;" +
+        "border-radius:10px;padding:14px 16px;box-shadow:0 2px 7px rgba(31,45,61,.10);'>" +
+          "<div style='display:flex;justify-content:space-between;align-items:flex-start;gap:10px;'>" +
+            "<div style='min-width:0;'>" +
+              "<div style='font-size:16px;line-height:1.25;font-weight:700;color:#172b4d;'>" + inspectionId + "</div>" +
+              "<div style='margin-top:4px;font-size:13px;line-height:1.35;color:#506176;'>" + canal + " &middot; " + singularity + "</div>" +
+            "</div>" +
+            "<span style='white-space:nowrap;border-radius:12px;padding:4px 8px;background:" + statusBackground +
+              ";color:" + statusColor + ";font-size:10px;font-weight:700;letter-spacing:.35px;'>" + statusLabel + "</span>" +
+          "</div>" +
+          "<div style='margin-top:11px;padding-top:10px;border-top:1px solid #edf1f4;" +
+            "display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#52606d;'>" +
+            "<span>&#128205; " + comuna + "</span>" +
+            "<span><b style='color:#172b4d;'>" + Text(totalCount) + "</b> geometría" + IIf(totalCount == 1, "", "s") + "</span>" +
+            "<span><b style='color:#172b4d;'>" + Text(areaHectares, "#,###.####") + "</b> ha</span>" +
+          "</div>" +
+        "</div>";
+
+    var attributes = {};
+    for (var sourceField in parentFields) {
+        if (sourceField.type == "esriFieldTypeOID") {
+            continue;
+        }
+        attributes[sourceField.name] = outputValue(parent[sourceField.name], sourceField.type);
+    }
+
+    attributes.cantidad_puntos = pointCount;
+    attributes.cantidad_lineas = lineCount;
+    attributes.cantidad_geometrias = totalCount;
+    attributes.area_ha = areaHectares;
+    attributes.html = html;
 
     Push(output.features, {
-        attributes: {
-            aoi_id: Text(parentId),
-            identificador: inspectionId,
-            nombre_canal: canal,
-            singularidad: singularity,
-            validacion: validation,
-            sector: DefaultValue(parent.sector, "Sin sector"),
-            region: DefaultValue(parent.region, ""),
-            provincia: DefaultValue(parent.provincia, ""),
-            comuna: DefaultValue(parent.comuna, ""),
-            cantidad_puntos: pointCount,
-            cantidad_lineas: lineCount,
-            cantidad_geometrias: totalCount,
-            area_ha: areaHectares,
-            html: html
-        },
+        attributes: attributes,
         geometry: aoiGeometry
     });
 }
