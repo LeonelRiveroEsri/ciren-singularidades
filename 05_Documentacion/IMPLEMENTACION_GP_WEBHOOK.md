@@ -43,7 +43,7 @@ La PYT publicada no busca `credenciales.json`. Antes de publicar, crear una copi
 }
 ```
 
-Completar también los IDs del Survey y del servicio consolidado y el filtro `validacion = 'si'`. La copia configurada contiene una contraseña: no debe confirmarse en Git, enviarse por correo ni conservarse en una carpeta compartida. El repositorio mantiene solamente marcadores.
+Completar también los dos IDs que consume la GP —`survey_feature_service` y `target_feature_service`— y el filtro `validacion = 'si'`. La GP no necesita el ID del Dashboard, del formulario de edición ni de los Web Maps. La copia configurada contiene una contraseña: no debe confirmarse en Git, enviarse por correo ni conservarse en una carpeta compartida. El repositorio mantiene solamente marcadores.
 
 Los notebooks y el ejecutor de Windows son artefactos diferentes y continúan leyendo sus credenciales desde el archivo externo configurado.
 

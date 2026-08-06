@@ -33,11 +33,7 @@ CONFIG_JSON = r'''
   },
   "items": {
     "survey_feature_service": "<ITEM_ID_SERVICIO_SURVEY>",
-    "target_feature_service": "<ITEM_ID_SERVICIO_DESTINO>",
-    "validation_dashboard": "<ITEM_ID_DASHBOARD_VALIDACION>",
-    "review_webmap": "<ITEM_ID_WEBMAP_REVISION>",
-    "edition_webmap": "<ITEM_ID_WEBMAP_EDICION>",
-    "edition_form": "<ITEM_ID_FORM_EDICION>"
+    "target_feature_service": "<ITEM_ID_SERVICIO_DESTINO>"
   },
   "consolidation": {
     "unique_field": "id_unique",

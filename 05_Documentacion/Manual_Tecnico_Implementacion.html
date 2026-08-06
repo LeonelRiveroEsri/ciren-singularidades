@@ -348,9 +348,9 @@ Por cada hijo nuevo:
         <thead><tr><th>Sección JSON</th><th>Contenido</th></tr></thead>
         <tbody>
           <tr><td><code>arcgis</code></td><td>En notebooks: ruta y perfil externo. En la PYT: URL, usuario y contraseña embebidos en la copia de publicación.</td></tr>
-          <tr><td><code>items</code></td><td>IDs de Survey, destino, Dashboard, Web Maps y Form de edición.</td></tr>
+          <tr><td><code>items</code></td><td>Solo los Item IDs del Feature Service Survey origen y del Feature Service referenciado destino.</td></tr>
           <tr><td><code>consolidation</code></td><td>Filtro de aprobación, <code>id_unique</code>, adjuntos y política de actualización.</td></tr>
-          <tr><td><code>arcade_tokens</code></td><td>Ítems con Arcade, coincidencias Regex esperadas y habilitación del notebook.</td></tr>
+          <tr><td><code>arcade_tokens</code></td><td>Lista independiente de Web Maps o Dashboards que realmente contienen <code>var token</code>, coincidencias esperadas y habilitación del notebook.</td></tr>
           <tr><td><code>automation</code></td><td>Horario recomendado para la renovación programada de tokens.</td></tr>
         </tbody>
       </table>
@@ -392,7 +392,7 @@ Por cada hijo nuevo:
       <ol>
         <li><strong>Copiar solución:</strong> transferir completa la carpeta <code>Notebook</code> y este manual.</li>
         <li><strong>Preparar credenciales:</strong> copiar <code>credenciales.example.json</code> a una ubicación segura, completar usuario/contraseña y ajustar su ruta en <code>configuracion_ciren.json</code>.</li>
-        <li><strong>Validar IDs:</strong> confirmar los ítems de <code>configuracion_ciren.json</code> y replicarlos en <code>CONFIG_JSON</code> de la PYT antes de publicarla.</li>
+        <li><strong>Validar IDs:</strong> confirmar `survey_feature_service` y `target_feature_service` y replicar únicamente esos dos valores en <code>CONFIG_JSON</code> de la PYT. Configurar aparte <code>arcade_tokens.item_ids</code> con los ítems que contienen el token.</li>
         <li><strong>Publicar el Survey:</strong> confirmar tabla padre 0, puntos 1, líneas 2, relaciones y adjuntos habilitados en el padre.</li>
         <li><strong>Preparar destino SDE:</strong> extraer <code>ShemaSDE.gdb.zip</code>, llevar el esquema Point y Polyline a la geodatabase corporativa SDE y conservar campos, GlobalID, adjuntos e <code>id_unique</code>.</li>
         <li><strong>Publicar destino:</strong> registrar la conexión SDE en ArcGIS Server y compartir las capas como Feature Service referenciado; usar el Item ID resultante en <code>target_feature_service</code>.</li>
