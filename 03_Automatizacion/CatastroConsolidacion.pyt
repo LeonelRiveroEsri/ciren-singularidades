@@ -27,13 +27,13 @@ from consolidar_survey import resolve_relationship_fields, run_consolidation  # 
 CONFIG_JSON = r'''
 {
   "arcgis": {
-    "url": "<URL_PORTAL_ENTERPRISE>",
-    "username": "<USUARIO_TECNICO>",
-    "password": "<CONTRASENA_TECNICA>"
+    "url": "https://esri.ciren.cl/portal/",
+    "username": "<USUARIO_PORTAL>",
+    "password": "<CONTRASENA_PORTAL>"
   },
   "items": {
-    "survey_feature_service": "<ITEM_ID_SERVICIO_SURVEY>",
-    "target_feature_service": "<ITEM_ID_SERVICIO_DESTINO>"
+    "survey_feature_service": "3f283dcb6d0f42dead81fc9059509550",
+    "target_feature_service": "1a2d5e2632524b709b0007c4c53841c4"
   },
   "consolidation": {
     "unique_field": "id_unique",
