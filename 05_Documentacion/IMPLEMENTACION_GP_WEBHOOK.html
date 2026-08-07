@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Integracion Survey123 Field App con GP Service | CIREN</title><style>
+    :root {
+      --ink:#2b2b2b; --muted:#666; --blue:#007ac2; --blue2:#00619b;
+      --sky:#e8f3fa; --line:#d8d8d8; --paper:#fff; --soft:#f4f4f4;
+      --green:#237a57; --green-bg:#e9f6ef; --amber:#a56100; --amber-bg:#fff5df;
+      --red:#a33a32; --red-bg:#fff0ee;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:#f2f2f2; color:var(--ink); font:15px/1.55 "Avenir Next","Segoe UI",Arial,sans-serif; }
+    .brandbar { background:#fff; border-top:5px solid #f89927; border-bottom:1px solid #ddd; }
+    .brand-inner { max-width:1120px; height:70px; margin:auto; padding:13px 28px; display:flex; align-items:center; justify-content:space-between; }
+    .brand-logo { display:block; width:190px; max-height:44px; }
+    .brand-label { color:#555; font-size:13px; letter-spacing:.04em; }
+    .hero { background:linear-gradient(115deg,#262626,#3d3d3d); color:white; padding:45px 28px; border-bottom:5px solid #007ac2; }
+    .hero-inner,.page { max-width:1120px; margin:auto; }
+    .eyebrow { letter-spacing:.12em; text-transform:uppercase; font-size:12px; font-weight:700; color:#f6a800; }
+    h1 { margin:8px 0 10px; font-size:36px; line-height:1.12; }
+    .lead { max-width:850px; margin:0; color:#eee; font-size:17px; }
+    .meta { display:flex; flex-wrap:wrap; gap:10px; margin-top:23px; }
+    .meta span { padding:6px 10px; border:1px solid #ffffff55; border-radius:20px; font-size:12px; }
+    .page { background:var(--paper); margin-top:24px; margin-bottom:40px; padding:34px; border-radius:3px; box-shadow:0 4px 18px #00000016; }
+    nav { padding:14px 18px; background:var(--soft); border:1px solid var(--line); border-radius:8px; }
+    nav a { display:inline-block; color:var(--blue); text-decoration:none; font-weight:600; margin:4px 18px 4px 0; }
+    section { padding-top:28px; }
+    h2 { margin:0 0 14px; color:var(--blue); font-size:25px; border-bottom:2px solid var(--sky); padding-bottom:8px; }
+    h3 { margin:22px 0 8px; font-size:18px; }
+    p { margin:8px 0 14px; }
+    code { color:#184d60; background:#edf4f6; padding:2px 5px; border-radius:4px; }
+    pre { white-space:pre-wrap; padding:15px; color:#e5f4f7; background:#173844; border-radius:7px; overflow:auto; }
+    .cards { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .card { border:1px solid var(--line); border-radius:8px; padding:17px; background:#fff; }
+    .card strong { display:block; color:var(--blue); font-size:17px; margin-bottom:4px; }
+    .number { display:inline-grid; place-items:center; width:28px; height:28px; border-radius:50%; color:white; background:var(--blue2); font-weight:700; margin-bottom:8px; }
+    .flow { display:grid; grid-template-columns:1fr 44px 1fr 44px 1fr; align-items:stretch; margin:20px 0; }
+    .node { border:1px solid var(--line); border-top:5px solid var(--blue2); border-radius:8px; padding:16px; background:white; }
+    .node b { display:block; font-size:16px; color:var(--blue); }
+    .arrow { display:grid; place-items:center; color:var(--blue2); font-size:27px; font-weight:bold; }
+    .branch { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:15px 0; }
+    .branch .node { background:var(--soft); }
+    table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:14px; }
+    th { text-align:left; background:#3b3b3b; color:white; padding:9px 11px; border-top:3px solid var(--blue); }
+    td { padding:9px 11px; border-bottom:1px solid var(--line); vertical-align:top; }
+    tbody tr:nth-child(even) { background:var(--soft); }
+    .callout { border-left:5px solid var(--blue2); background:var(--sky); padding:13px 16px; margin:16px 0; border-radius:0 7px 7px 0; }
+    .ok { border-color:var(--green); background:var(--green-bg); }
+    .warn { border-color:var(--amber); background:var(--amber-bg); }
+    .risk { border-color:var(--red); background:var(--red-bg); }
+    .tag { display:inline-block; border-radius:14px; padding:2px 8px; font-size:12px; font-weight:700; }
+    .tag.green { color:var(--green); background:var(--green-bg); }
+    .tag.amber { color:var(--amber); background:var(--amber-bg); }
+    .checklist { list-style:none; padding:0; }
+    .checklist li { position:relative; padding:7px 0 7px 30px; border-bottom:1px solid #edf2f4; }
+    .checklist li::before { content:"✓"; position:absolute; left:2px; color:var(--green); font-weight:800; }
+    .small { color:var(--muted); font-size:13px; }
+    footer { border-top:3px solid #f89927; margin-top:36px; padding-top:18px; color:var(--muted); font-size:12px; }
+    @media (max-width:800px) {
+      .cards,.branch { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; gap:8px; }
+      .arrow { transform:rotate(90deg); min-height:30px; }
+      .page { margin:0; border-radius:0; padding:22px; }
+      h1 { font-size:29px; }
+    }
+    @media print {
+      body { background:white; }
+      .hero { padding:28px; }
+      .page { box-shadow:none; margin:0 auto; padding:25px 0; }
+      nav { display:none; }
+      section { break-inside:avoid; }
+      a { color:inherit; text-decoration:none; }
+    }
+  </style></head>
+<body><header class="brandbar"><div class="brand-inner"><img class="brand-logo" src="https://assets.esri.com/content/dam/distributor-restricted/esri-cl/logos/gnav-dist-esri-chile-tm.svg" alt="Esri Chile"><span class="brand-label">Documento tecnico para TI CIREN</span></div></header>
+<section class="hero"><div class="hero-inner"><div class="eyebrow">Catastro de singularidades</div><h1>Integracion Survey123 Field App con GP Service</h1><p class="lead">Arquitectura, configuracion, operacion y soporte del webhook directo validado en ArcGIS Enterprise CIREN.</p><div class="meta"><span>Estado: flujo validado</span><span>Fecha: 7 de agosto de 2026</span><span>Destinatario: TI CIREN</span></div></div></section>
+<main class="page"><nav><a href="#1-objetivo">Objetivo</a><a href="#2-arquitectura-validada">Arquitectura</a><a href="#3-endpoint-operativo">Endpoint</a><a href="#4-configuracion-de-survey123-field-app">Survey123</a><a href="#5-comportamiento-de-la-consolidacion">Consolidacion</a><a href="#6-diferencia-entre-field-app-y-aplicacion-web">Field App vs Web</a><a href="#7-ajuste-requerido-para-habilitar-la-aplicacion-web">CORS</a><a href="#8-prueba-de-aceptacion">Aceptacion</a><a href="#9-monitoreo-y-soporte">Soporte</a><a href="#10-seguridad-y-operacion">Seguridad</a><a href="#11-resultado">Resultado</a></nav><h2 id="1-objetivo">1. Objetivo</h2>
+<p>Documentar la integracion que ejecuta la consolidacion de singularidades luego
+de editar y validar una encuesta desde Survey123 Field App.</p>
+<p>La solucion consolida en capas de puntos y lineas los registros de la tabla
+padre cuyo campo <code>validacion</code> tiene el valor <code>si</code>. La carga es incremental y
+utiliza <code>id_unique</code> para impedir duplicados.</p>
+<h2 id="2-arquitectura-validada">2. Arquitectura validada</h2>
+<pre><code class="language-text">Dashboard o bandeja de trabajo
+        |
+        v
+Survey123 Field App con Inbox
+        |
+        | Edicion del registro y validacion = si
+        v
+Webhook Survey123
+        |
+        | POST directo
+        v
+GP Service asincrono de ArcGIS Enterprise
+        |
+        v
+Consulta de padres validados y consolidacion incremental
+        |
+        v
+Feature Service referenciado a la geodatabase SDE
+</code></pre>
+<p>La prueba funcional confirmo que una edicion enviada desde el Inbox de
+Survey123 Field App activa correctamente el GP Service. Para este flujo no fue
+necesario un receptor intermedio.</p>
+<h2 id="3-endpoint-operativo">3. Endpoint operativo</h2>
+<p>El webhook utiliza la operacion <code>submitJob</code> del task asincrono:</p>
+<pre><code class="language-text">https://esri.ciren.cl/server/rest/services/PROYECTOS_EXTERNOS_CNR/ConsolidadorSingularidades/GPServer/Consolidar%20encuestas%20validadas/submitJob?f=json
+</code></pre>
+<p>El task publicado es:</p>
+<pre><code class="language-text">Consolidar encuestas validadas
+</code></pre>
+<p>La herramienta no expone parametros. Cada ejecucion vuelve a consultar el
+Survey, selecciona los registros aprobados y procesa solamente los que aun no
+existen en el destino segun <code>id_unique</code>.</p>
+<h2 id="4-configuracion-de-survey123-field-app">4. Configuracion de Survey123 Field App</h2>
+<ol>
+<li>Configurar y habilitar el Inbox en la encuesta de edicion.</li>
+<li>Configurar el webhook de Survey123 con el endpoint <code>submitJob</code> indicado.</li>
+<li>Habilitar el evento de edicion de registros existentes.</li>
+<li>Publicar o actualizar la encuesta.</li>
+<li>En cada dispositivo, actualizar o volver a descargar la encuesta para
+   incorporar la configuracion vigente del webhook.</li>
+<li>Abrir el registro desde Inbox, cambiar <code>validacion</code> a <code>si</code> y enviarlo.</li>
+</ol>
+<p>El disparador debe estar asociado a la encuesta utilizada para revisar y editar
+el registro padre. La encuesta inicial de captura no necesita ejecutar la
+consolidacion mientras el registro no haya sido aprobado.</p>
+<h2 id="5-comportamiento-de-la-consolidacion">5. Comportamiento de la consolidacion</h2>
+<p>Al recibir el evento, el GP Service:</p>
+<ol>
+<li>se conecta al Portal con la cuenta tecnica configurada en la herramienta;</li>
+<li>obtiene la tabla padre y las capas hijas de punto y linea;</li>
+<li>detecta la relacion <code>uniquerowid -&gt; parentrowid</code> o, cuando corresponda,
+   <code>globalid -&gt; parentglobalid</code>;</li>
+<li>selecciona padres con <code>validacion = 'si'</code>;</li>
+<li>copia los atributos del padre a la geometria correspondiente;</li>
+<li>completa con <code>Z=1</code> las geometrias destino que exigen valores Z;</li>
+<li>evita repeticiones guardando el GlobalID del hijo en <code>id_unique</code>;</li>
+<li>copia adjuntos cuando el origen y el destino los tienen habilitados;</li>
+<li>informa resultados mediante mensajes de geoprocesamiento <code>arcpy</code>.</li>
+</ol>
+<p>No existe una tarea programada de reconciliacion. La consolidacion se activa
+por evento. La ejecucion repetida es segura respecto de duplicados gracias a
+<code>id_unique</code>.</p>
+<h2 id="6-diferencia-entre-field-app-y-aplicacion-web">6. Diferencia entre Field App y aplicacion web</h2>
+<h3 id="survey123-field-app">Survey123 Field App</h3>
+<p>El flujo fue probado correctamente desde la aplicacion nativa con Inbox. La
+aplicacion no esta sujeta a las restricciones CORS propias de un navegador.</p>
+<h3 id="survey123-web-app">Survey123 Web App</h3>
+<p>La aplicacion web mostro el mensaje <code>Failed to fetch</code>. La inspeccion de la
+solicitud <code>OPTIONS</code> confirmo:</p>
+<pre><code class="language-text">HTTP 200
+Allow: GET, HEAD, POST, OPTIONS
+Access-Control-Allow-Origin: https://survey123.arcgis.com
+Access-Control-Allow-Credentials: true
+</code></pre>
+<p>Sin embargo, la respuesta no incluyo:</p>
+<pre><code class="language-text">Access-Control-Allow-Methods: GET, HEAD, POST, OPTIONS
+Access-Control-Allow-Headers: Content-Type
+</code></pre>
+<p>El encabezado HTTP <code>Allow</code> no sustituye a <code>Access-Control-Allow-Methods</code> en una
+validacion CORS. Por esta razon el navegador puede bloquear el POST antes de
+que la solicitud alcance el GP Service.</p>
+<p>La operacion desde Field App queda validada. El uso desde Survey123 Web App
+queda pendiente de correccion CORS en IIS, Web Adaptor, proxy inverso o
+balanceador.</p>
+<h2 id="7-ajuste-requerido-para-habilitar-la-aplicacion-web">7. Ajuste requerido para habilitar la aplicacion web</h2>
+<p>El componente que publica <code>/server</code> debe conservar el encabezado de origen que
+genera ArcGIS Server y agregar a las respuestas, incluidas las solicitudes
+<code>OPTIONS</code>:</p>
+<pre><code class="language-text">Access-Control-Allow-Methods: GET, HEAD, POST, OPTIONS
+Access-Control-Allow-Headers: Content-Type
+</code></pre>
+<p>No se debe duplicar <code>Access-Control-Allow-Origin</code>, porque ArcGIS Server ya
+responde correctamente para <code>https://survey123.arcgis.com</code>.</p>
+<p>Despues del ajuste, TI debe comprobar desde las herramientas de desarrollo del
+navegador que el preflight <code>OPTIONS</code> contiene los tres encabezados CORS antes
+de volver a probar una edicion real.</p>
+<h2 id="8-prueba-de-aceptacion">8. Prueba de aceptacion</h2>
+<ol>
+<li>Abrir Survey123 Field App con un usuario autorizado.</li>
+<li>Actualizar la encuesta desde el dispositivo.</li>
+<li>Sincronizar el Inbox.</li>
+<li>Abrir un padre cuya validacion no sea <code>si</code>.</li>
+<li>Cambiar la validacion a <code>si</code> y enviar la edicion.</li>
+<li>Confirmar la creacion de un trabajo GP asincrono.</li>
+<li>Confirmar que el trabajo termina con estado satisfactorio.</li>
+<li>Revisar que la entidad aparece en la capa destino correspondiente.</li>
+<li>Confirmar que <code>id_unique</code> contiene el GlobalID de la geometria hija.</li>
+<li>Repetir el evento y verificar que no se crea una entidad duplicada.</li>
+</ol>
+<h2 id="9-monitoreo-y-soporte">9. Monitoreo y soporte</h2>
+<p>Ante una incidencia, revisar en este orden:</p>
+<ol>
+<li>estado de sincronizacion de Survey123 Field App;</li>
+<li>version descargada de la encuesta y configuracion del webhook;</li>
+<li>disponibilidad publica del recurso REST del task;</li>
+<li>trabajos y mensajes del GP Service;</li>
+<li>logs de ArcGIS Server;</li>
+<li>conectividad del GP con Portal, Survey y servicio destino;</li>
+<li>permisos de edicion y adjuntos en el Feature Service destino;</li>
+<li>existencia de <code>id_unique</code> y compatibilidad de relaciones.</li>
+</ol>
+<p>La herramienta no crea archivos de log en ArcGIS Server. Todos los mensajes de
+ejecucion se consultan en el trabajo GP y en los logs administrados por ArcGIS
+Server.</p>
+<h2 id="10-seguridad-y-operacion">10. Seguridad y operacion</h2>
+<p>El endpoint no recibe parametros y ejecuta una consulta global de pendientes
+validados. <code>id_unique</code> protege contra duplicados, pero no evita que un tercero
+invoque repetidamente el servicio si permanece anonimo.</p>
+<p>TI CIREN debe evaluar:</p>
+<ul>
+<li>limitar el acceso de red al endpoint;</li>
+<li>aplicar controles en Web Adaptor, proxy o firewall de aplicaciones;</li>
+<li>monitorear frecuencia y origen de las llamadas;</li>
+<li>usar una cuenta tecnica con permisos minimos;</li>
+<li>rotar la contrasena segun la politica institucional;</li>
+<li>no guardar credenciales reales en Git ni en carpetas compartidas.</li>
+</ul>
+<p>Si en el futuro se requiere validar el contenido del evento, aplicar una firma,
+limitar el formulario de origen o controlar reintentos, se debe incorporar un
+receptor institucional entre Survey123 y <code>submitJob</code>.</p>
+<h2 id="11-resultado">11. Resultado</h2>
+<p>El flujo operativo aprobado para la etapa actual es:</p>
+<pre><code class="language-text">Survey123 Field App + Inbox -&gt; webhook directo -&gt; GP Service -&gt; SDE
+</code></pre>
+<p>La ejecucion desde Field App fue comprobada exitosamente. La habilitacion del
+mismo flujo desde navegador es una mejora independiente y requiere completar
+la configuracion CORS de la infraestructura web.</p></main><footer style="max-width:1120px;margin:0 auto 30px;text-align:center;color:#777;font-size:12px;">Catastro de singularidades CIREN &middot; Documento de implementacion y soporte</footer></body></html>
