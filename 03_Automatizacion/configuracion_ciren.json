@@ -4,8 +4,8 @@
     "credentials_profile": "PORTAL"
   },
   "items": {
-    "survey_feature_service": "<ITEM_ID_SERVICIO_SURVEY>",
-    "target_feature_service": "<ITEM_ID_SERVICIO_DESTINO>"
+    "survey_feature_service": "3f283dcb6d0f42dead81fc9059509550",
+    "target_feature_service": "1a2d5e2632524b709b0007c4c53841c4"
   },
   "consolidation": {
     "unique_field": "id_unique",

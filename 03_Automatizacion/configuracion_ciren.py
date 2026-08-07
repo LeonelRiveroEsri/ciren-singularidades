@@ -6,13 +6,42 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Iterable, Optional
 
 from arcgis.gis import GIS
 
 
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().with_name("configuracion_ciren.json")
 CONFIG_PATH_ENV = "CIREN_CONFIG_PATH"
+
+
+def load_config_sections(
+    path: Optional[str], required_sections: Iterable[str]
+) -> Dict[str, Any]:
+    """Carga el JSON y valida solo las secciones usadas por un ejecutor."""
+    config_path = Path(
+        path or os.environ.get(CONFIG_PATH_ENV, str(DEFAULT_CONFIG_PATH))
+    ).expanduser().resolve()
+    if not config_path.exists():
+        raise FileNotFoundError(f"No existe la configuracion: {config_path}")
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+
+    required = set(required_sections)
+    missing_sections = required - set(config)
+    if missing_sections:
+        raise ValueError(
+            f"Faltan secciones de configuracion: {sorted(missing_sections)}"
+        )
+    scoped_config = {section: config[section] for section in required}
+    placeholders = sorted(
+        set(re.findall(r"<[^<>]+>", json.dumps(scoped_config)))
+    )
+    if placeholders:
+        raise ValueError(
+            "Configuracion incompleta. Reemplace los marcadores: "
+            + ", ".join(placeholders)
+        )
+    return config
 
 
 def load_solution_config(path: Optional[str] = None) -> Dict[str, Any]:
