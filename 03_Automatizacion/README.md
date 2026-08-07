@@ -18,8 +18,9 @@ Los notebooks y tareas Windows deben conservar su ubicación relativa respecto d
 ## Pruebas
 
 1. Para consolidación, mantener `consolidation.notebook_execute_changes: false` hasta revisar la simulación de `001.ipynb`.
-2. Ejecutar `Actualizar_token_Arcade_CIREN.ipynb`: primero simula y exige `expected_matches`; si coincide, la última celda actualiza el token.
-3. La frecuencia de producción se configura exclusivamente en Windows Task Scheduler, no en el JSON.
+2. Usar `002 Revision de datos.ipynb` como punto de partida de solo lectura para revisar tabla padre, capas consolidadas y campos clave.
+3. Ejecutar `Actualizar_token_Arcade_CIREN.ipynb`: primero simula y exige `expected_matches`; si coincide, la última celda actualiza el token.
+4. La frecuencia de producción se configura exclusivamente en Windows Task Scheduler, no en el JSON.
 
 ## Windows Task Scheduler
 

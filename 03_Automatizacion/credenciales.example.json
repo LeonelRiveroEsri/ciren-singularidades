@@ -1,7 +1,7 @@
 {
   "PORTAL": {
-    "url": "https://portal.organizacion.cl/portal",
-    "username": "USUARIO_TECNICO_CIREN",
-    "password": "REEMPLAZAR_EN_ARCHIVO_SEGURO"
+    "url": "https://esri.ciren.cl/portal/",
+    "username": "<USUARIO_PORTAL>",
+    "password": "<CONTRASENA_PORTAL>"
   }
 }
