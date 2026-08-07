@@ -47,13 +47,28 @@ else:
 
 # Consola “dummy” si no hay rich (no rompe nada)
 class _DummyConsole:
+    def __init__(self, *args, **kwargs):
+        pass
+
     def print(self, *args, **kwargs):
-        print(*args)
+        clean_args = [re.sub(r"\[/?[^\]]+\]", "", str(value)) for value in args]
+        print(*clean_args)
+
+class _DummyTheme:
+    def __init__(self, *args, **kwargs):
+        pass
+
+class _DummyHighlighter:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, value):
+        return value
 
 if not RICH_OK:
     Console = _DummyConsole
-    Theme = object
-    RegexHighlighter = object
+    Theme = _DummyTheme
+    RegexHighlighter = _DummyHighlighter
     def escape(s): return s
 
 TS_PATTERNS = [
