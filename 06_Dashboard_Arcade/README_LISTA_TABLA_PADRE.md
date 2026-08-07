@@ -13,3 +13,9 @@ hijas, geometria, AOI, adjuntos ni tokens.
 Los nombres entre llaves son campos reales de la tabla padre. Si un ambiente
 publica alguno con otro nombre, se debe reemplazar solamente ese marcador en la
 plantilla.
+
+## Detalle
+
+Para mostrar la ficha completa, agregar un elemento **Detalles** conectado a la
+misma tabla y pegar `PlantillaDetalleTablaPadre.html` en su fuente HTML. La Lista
+debe filtrar este elemento mediante una accion de filtro por `globalid`.
