@@ -24,8 +24,8 @@ Los notebooks y tareas Windows deben conservar su ubicación relativa respecto d
 
 ## Windows Task Scheduler
 
-- `ConsolidarEncuestasScheduler.py`: consolidacion incremental programada como alternativa al webhook cuando la aplicacion web esta bloqueada por CORS.
-- `WINDOWS_TASK_SCHEDULER_CONSOLIDACION.md`: instalacion, frecuencia, codigos de salida y monitoreo de la consolidacion.
+- `EjecutarGPConsolidacionScheduler.py`: ejecutor programado sin dependencias que llama y monitorea el GP Service cuando la aplicacion web esta bloqueada por CORS.
+- `WINDOWS_TASK_SCHEDULER_CONSOLIDACION.md`: instalacion, frecuencia, codigos de salida y monitoreo del GP programado.
 
 - `ActualizarTokensScheduler.py`: entrada de producción sin parámetros para renovar tokens Arcade. Cambia al directorio del script, por lo que también funciona cuando el campo **Iniciar en** queda vacío.
 - `WINDOWS_TASK_SCHEDULER.md`: instalación, prueba, configuración de la tarea, códigos de salida y monitoreo.
